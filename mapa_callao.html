@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Estructural de Transporte - Callao</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .leaflet-routing-container { display: none !important; }
+        
+        /* Panel con scroll para soportar muchas rutas */
+        .control-panel {
+            position: absolute; top: 15px; right: 15px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 15px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 280px; max-height: 80vh; overflow-y: auto;
+        }
+        .control-panel h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;}
+        .route-toggle { margin-bottom: 12px; display: flex; align-items: center; font-size: 13px; font-weight: bold;}
+        .route-toggle input { margin-right: 10px; cursor: pointer; width: 16px; height: 16px; }
+        .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
+        .legend { font-size: 11px; color: #555; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 5px;}
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h3>📍 Origen: Callao</h3>
+        
+        <div id="lista-rutas"></div>
+
+        <div class="legend">
+            <b>Línea continua</b> = Ida<br>
+            <b>Línea punteada</b> = Vuelta
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
+    <script>
+        const map = L.map('map').setView([-12.050, -77.110], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+       const rutasData = {
+            "rutaIM06": {
+                nombre: "E.T. Colonial (IM06)",
+                color: '#C0392B', // Rojo
+                ida: [
+                    L.latLng(-12.0620, -77.1470), // Inicio: La Punta / Chucuito
+                    L.latLng(-12.0560, -77.1180), // Av. Oscar R. Benavides (Colonial) - Bellavista
+                    L.latLng(-12.0535, -77.0950), // Colonial - San Marcos
+                    L.latLng(-12.0460, -77.0425)  // Plaza Dos de Mayo
+                ],
+                vuelta: [
+                    L.latLng(-12.0460, -77.0425),
+                    L.latLng(-12.0535, -77.0950),
+                    L.latLng(-12.0560, -77.1180),
+                    L.latLng(-12.0620, -77.1470)
+                ],
+                instancias: []
+            },
+            "rutaCR71": {
+                nombre: "E.T. La Marina (CR71)",
+                color: '#2980B9', // Azul
+                ida: [
+                    L.latLng(-12.0621, -77.1352), // Óvalo La Perla
+                    L.latLng(-12.0725, -77.0850), // Av. La Marina (San Miguel)
+                    L.latLng(-12.0831, -77.0450), // Pershing
+                    L.latLng(-12.0831, -77.0253)  // Javier Prado
+                ],
+                vuelta: [
+                    L.latLng(-12.0831, -77.0253),
+                    L.latLng(-12.0831, -77.0450),
+                    L.latLng(-12.0725, -77.0850),
+                    L.latLng(-12.0621, -77.1352)
+                ],
+                instancias: []
+            },
+            "rutaIO52": {
+                nombre: "Consorcio Vía (IO52)",
+                color: '#27AE60', // Verde
+                ida: [
+                    L.latLng(-11.8752, -77.1264), // Ventanilla
+                    L.latLng(-12.0000, -77.1080), // Av. Elmer Faucett (Aeropuerto)
+                    L.latLng(-12.0538, -77.0984), // Faucett cruce Colonial
+                    L.latLng(-12.0725, -77.0850)  // Faucett cruce La Marina
+                ],
+                vuelta: [
+                    L.latLng(-12.0725, -77.0850),
+                    L.latLng(-12.0538, -77.0984),
+                    L.latLng(-12.0000, -77.1080),
+                    L.latLng(-11.8752, -77.1264)
+                ],
+                instancias: []
+            },
+            "rutaCR04": {
+                nombre: "E.T. Argentina (CR04)",
+                color: '#F39C12', // Naranja
+                ida: [
+                    L.latLng(-12.0465, -77.1435), // Obelisco del Callao
+                    L.latLng(-12.0450, -77.1150), // Av. Argentina (Minka)
+                    L.latLng(-12.0440, -77.0750), // Av. Argentina (Dueñas)
+                    L.latLng(-12.0460, -77.0425)  // Plaza Dos de Mayo
+                ],
+                vuelta: [
+                    L.latLng(-12.0460, -77.0425),
+                    L.latLng(-12.0440, -77.0750),
+                    L.latLng(-12.0450, -77.1150),
+                    L.latLng(-12.0465, -77.1435)
+                ],
+                instancias: []
+            },
+            "rutaIO66": {
+                nombre: "E.T. Venezuela (IO66)",
+                color: '#8E44AD', // Morado
+                ida: [
+                    L.latLng(-12.0650, -77.1400), // Real Felipe / Callao
+                    L.latLng(-12.0645, -77.1132), // Av. Guardia Chalaca
+                    L.latLng(-12.0590, -77.0850), // Av. Venezuela (San Marcos)
+                    L.latLng(-12.0550, -77.0400)  // Av. Arica / Breña
+                ],
+                vuelta: [
+                    L.latLng(-12.0550, -77.0400),
+                    L.latLng(-12.0590, -77.0850),
+                    L.latLng(-12.0645, -77.1132),
+                    L.latLng(-12.0650, -77.1400)
+                ],
+                instancias: []
+            },
+        "rutaIO09": {
+                nombre: "E.T. Expreso Ventanilla (IO09)",
+                color: '#E67E22', // Naranja
+                ida: [
+                    L.latLng(-11.8752, -77.1264), // Ventanilla
+                    L.latLng(-12.0250, -77.1000), // Av. Faucett
+                    L.latLng(-12.0621, -77.1352)  // Callao
+                ],
+                vuelta: [
+                    L.latLng(-12.0621, -77.1352),
+                    L.latLng(-12.0250, -77.1000),
+                    L.latLng(-11.8752, -77.1264)
+                ],
+                instancias: []
+            },
+            "rutaOM28": {
+                nombre: "E.T. Translima (OM28)",
+                color: '#D35400', // Terracota
+                ida: [
+                    L.latLng(-12.0550, -77.1500), // La Punta
+                    L.latLng(-12.0600, -77.1200), // Av. Guardia Chalaca
+                    L.latLng(-12.0800, -77.0500), // Av. Brasil
+                    L.latLng(-12.1200, -77.0200)  // Miraflores
+                ],
+                vuelta: [
+                    L.latLng(-12.1200, -77.0200),
+                    L.latLng(-12.0800, -77.0500),
+                    L.latLng(-12.0600, -77.1200),
+                    L.latLng(-12.0550, -77.1500)
+                ],
+                instancias: []
+            },
+            "rutaCR16": {
+                nombre: "E.T. Sol de Oro (CR16)",
+                color: '#F1C40F', // Amarillo
+                ida: [
+                    L.latLng(-12.0450, -77.1400), // Callao Centro
+                    L.latLng(-12.0300, -77.0800), // Av. Tomas Valle
+                    L.latLng(-12.0000, -77.0500)  // Los Olivos
+                ],
+                vuelta: [
+                    L.latLng(-12.0000, -77.0500),
+                    L.latLng(-12.0300, -77.0800),
+                    L.latLng(-12.0450, -77.1400)
+                ],
+                instancias: []
+            },
+            "rutaIO07": {
+                nombre: "E.T. Los Chanos (IO07)",
+                color: '#16A085', // Verde Turquesa
+                ida: [
+                    L.latLng(-12.0620, -77.1300), // Callao
+                    L.latLng(-12.0500, -77.0900), // Av. La Marina
+                    L.latLng(-12.0400, -77.0200)  // Av. Abancay
+                ],
+                vuelta: [
+                    L.latLng(-12.0400, -77.0200),
+                    L.latLng(-12.0500, -77.0900),
+                    L.latLng(-12.0620, -77.1300)
+                ],
+                instancias: []
+            },
+            "rutaCR43": {
+                nombre: "E.T. Santa Cruz (CR43)",
+                color: '#8E44AD', // Morado Oscuro
+                ida: [
+                    L.latLng(-12.0500, -77.1400), // Callao
+                    L.latLng(-12.0550, -77.1000), // Av. Colonial
+                    L.latLng(-12.0600, -77.0300)  // Av. Grau
+                ],
+                vuelta: [
+                    L.latLng(-12.0600, -77.0300),
+                    L.latLng(-12.0550, -77.1000),
+                    L.latLng(-12.0500, -77.1400)
+                ],
+                instancias: []
+            },
+            "rutaIM11": {
+                nombre: "E.T. Consorcio Grupo Express (IM11)",
+                color: '#2C3E50', // Azul Oscuro
+                ida: [
+                    L.latLng(-12.0400, -77.1400), // Callao
+                    L.latLng(-12.0500, -77.0700), // Av. La Marina
+                    L.latLng(-12.0900, -77.0100)  // San Borja
+                ],
+                vuelta: [
+                    L.latLng(-12.0900, -77.0100),
+                    L.latLng(-12.0500, -77.0700),
+                    L.latLng(-12.0400, -77.1400)
+                ],
+                instancias: []
+            },
+            "rutaOM30": {
+                nombre: "E.T. Sesosa (OM30)",
+                color: '#3498DB', // Azul Claro
+                ida: [
+                    L.latLng(-12.0600, -77.1400), // Callao
+                    L.latLng(-12.0300, -77.0900), // Av. Faucett
+                    L.latLng(-12.0000, -77.0500)  // Panamericana Norte
+                ],
+                vuelta: [
+                    L.latLng(-12.0000, -77.0500),
+                    L.latLng(-12.0300, -77.0900),
+                    L.latLng(-12.0600, -77.1400)
+                ],
+                instancias: []
+            },
+            "rutaIO55": {
+                nombre: "E.T. Chalacos Unidos (IO55)",
+                color: '#E74C3C', // Rojo Claro
+                ida: [
+                    L.latLng(-12.0620, -77.1350), // Callao
+                    L.latLng(-12.0580, -77.1000), // Av. Colonial
+                    L.latLng(-12.0500, -77.0500)  // Cercado de Lima
+                ],
+                vuelta: [
+                    L.latLng(-12.0500, -77.0500),
+                    L.latLng(-12.0580, -77.1000),
+                    L.latLng(-12.0620, -77.1350)
+                ],
+                instancias: []
+            },
+            "rutaCR35": {
+                nombre: "E.T. El Amauta (CR35)",
+                color: '#2ECC71', // Verde Brillante
+                ida: [
+                    L.latLng(-12.0650, -77.1400), // Callao
+                    L.latLng(-12.0700, -77.0900), // Av. La Marina
+                    L.latLng(-12.0800, -77.0200)  // Av. Javier Prado
+                ],
+                vuelta: [
+                    L.latLng(-12.0800, -77.0200),
+                    L.latLng(-12.0700, -77.0900),
+                    L.latLng(-12.0650, -77.1400)
+                ],
+                instancias: []
+            },
+            "rutaOM32": {
+                nombre: "E.T. Orion (OM32)",
+                color: '#7F8C8D', // Gris
+                ida: [
+                    L.latLng(-12.0450, -77.1300), // Callao
+                    L.latLng(-12.0400, -77.0800), // Av. Argentina
+                    L.latLng(-12.0300, -77.0200)  // Av. Universitaria
+                ],
+                vuelta: [
+                    L.latLng(-12.0300, -77.0200),
+                    L.latLng(-12.0400, -77.0800),
+                    L.latLng(-12.0450, -77.1300)
+                ],
+                instancias: []
+            },
+       };
+        
+        // --- FIN DEL BLOQUE DE DATOS ---
+
+        // Función de inicialización: Crea la interfaz leyendo los datos
+        function inicializarUI() {
+            const contenedor = document.getElementById('lista-rutas');
+            for (const [id, datos] of Object.entries(rutasData)) {
+                contenedor.innerHTML += `
+                    <div class="route-toggle">
+                        <input type="checkbox" id="${id}" onchange="toggleRuta('${id}')">
+                        <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
+                    </div>
+                `;
+            }
+        }
+
+        // Lógica del motor de enrutamiento
+        function toggleRuta(idRuta) {
+            const checkbox = document.getElementById(idRuta);
+            const datos = rutasData[idRuta];
+            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
+
+            if (checkbox.checked) {
+                const trazoIda = L.Routing.control({
+                    waypoints: datos.ida, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6 }] }
+                }).addTo(map);
+
+                const trazoVuelta = L.Routing.control({
+                    waypoints: datos.vuelta, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray: '8, 12' }] }
+                }).addTo(map);
+
+                datos.instancias = [trazoIda, trazoVuelta];
+            } else {
+                datos.instancias.forEach(instancia => map.removeControl(instancia));
+                datos.instancias = [];
+            }
+        }
+
+        // Ejecutar al cargar
+        if(typeof rutasData !== 'undefined') {
+            inicializarUI();
+        } else {
+            console.warn("Falta insertar el bloque de datos rutasData");
+        }
+    </script>
+</body>
+</html>
