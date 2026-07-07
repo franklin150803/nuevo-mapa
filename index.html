@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Estructural de Transporte - Callao</title>
+    <title>Sistema Estructural de Transporte - Lima y Callao</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
@@ -21,6 +21,12 @@
             width: 280px; max-height: 80vh; overflow-y: auto;
         }
         .control-panel h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;}
+        .distrito-header {
+            font-size: 13px; font-weight: bold; text-transform: uppercase;
+            color: #333; margin: 14px 0 8px 0; padding-top: 8px;
+            border-top: 1px solid #ddd;
+        }
+        .distrito-header:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
         .route-toggle { margin-bottom: 12px; display: flex; align-items: center; font-size: 13px; font-weight: bold;}
         .route-toggle input { margin-right: 10px; cursor: pointer; width: 16px; height: 16px; }
         .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
@@ -30,7 +36,7 @@
 <body>
 
     <div class="control-panel">
-        <h3>📍 Origen: Callao</h3>
+        <h3>📍 Rutas de Transporte</h3>
 
         <div id="lista-rutas"></div>
 
@@ -45,32 +51,70 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
-    <!-- Datos de rutas del Callao (separado en su propio archivo) -->
+    <!-- Datos de rutas por distrito (cada distrito en su propio archivo) -->
     <script src="rutas-callao.js"></script>
+    <script src="rutas-lima.js"></script>
 
     <script>
-        const map = L.map('map').setView([-12.050, -77.110], 13);
+        const map = L.map('map').setView([-12.050, -77.080], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // Función de inicialización: Crea la interfaz leyendo los datos
+        // ------------------------------------------------------------------
+        // Registro central de distritos. Para agregar un nuevo distrito:
+        // 1. Crea su archivo rutas-<distrito>.js con su propia variable (ej. rutasSJL)
+        // 2. Agrega un <script src="rutas-<distrito>.js"> arriba
+        // 3. Agrega una entrada aquí: "Nombre a mostrar": variableDeRutas
+        // ------------------------------------------------------------------
+        const distritosData = {
+            "Callao": (typeof rutasData !== 'undefined') ? rutasData : {},
+            "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {}
+        };
+
+        // Busca una ruta por su id en cualquiera de los distritos registrados
+        function buscarRuta(idRuta) {
+            for (const distrito in distritosData) {
+                if (distritosData[distrito][idRuta]) {
+                    return distritosData[distrito][idRuta];
+                }
+            }
+            return null;
+        }
+
+        // Función de inicialización: Crea la interfaz agrupada por distrito
         function inicializarUI() {
             const contenedor = document.getElementById('lista-rutas');
-            for (const [id, datos] of Object.entries(rutasData)) {
-                contenedor.innerHTML += `
-                    <div class="route-toggle">
-                        <input type="checkbox" id="${id}" onchange="toggleRuta('${id}')">
-                        <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
-                    </div>
-                `;
+            let html = '';
+
+            for (const [distrito, rutas] of Object.entries(distritosData)) {
+                const ids = Object.keys(rutas);
+                if (ids.length === 0) continue;
+
+                html += `<div class="distrito-header">${distrito} (${ids.length})</div>`;
+
+                for (const [id, datos] of Object.entries(rutas)) {
+                    html += `
+                        <div class="route-toggle">
+                            <input type="checkbox" id="${id}" onchange="toggleRuta('${id}')">
+                            <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
+                        </div>
+                    `;
+                }
             }
+
+            contenedor.innerHTML = html;
         }
 
         // Lógica del motor de enrutamiento
         function toggleRuta(idRuta) {
             const checkbox = document.getElementById(idRuta);
-            const datos = rutasData[idRuta];
+            const datos = buscarRuta(idRuta);
+            if (!datos) return;
+
+            // Compatibilidad: algunos archivos (ej. rutas-lima.js) no traen "instancias"
+            if (!datos.instancias) datos.instancias = [];
+
             const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
 
             if (checkbox.checked) {
@@ -92,11 +136,7 @@
         }
 
         // Ejecutar al cargar
-        if (typeof rutasData !== 'undefined') {
-            inicializarUI();
-        } else {
-            console.warn("Falta insertar el bloque de datos rutasData");
-        }
+        inicializarUI();
     </script>
 </body>
 </html>
