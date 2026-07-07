@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Estructural de Transporte - Callao</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .leaflet-routing-container { display: none !important; }
+
+        /* Panel con scroll para soportar muchas rutas */
+        .control-panel {
+            position: absolute; top: 15px; right: 15px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 15px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 280px; max-height: 80vh; overflow-y: auto;
+        }
+        .control-panel h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;}
+        .route-toggle { margin-bottom: 12px; display: flex; align-items: center; font-size: 13px; font-weight: bold;}
+        .route-toggle input { margin-right: 10px; cursor: pointer; width: 16px; height: 16px; }
+        .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
+        .legend { font-size: 11px; color: #555; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 5px;}
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h3>📍 Origen: Callao</h3>
+
+        <div id="lista-rutas"></div>
+
+        <div class="legend">
+            <b>Línea continua</b> = Ida<br>
+            <b>Línea punteada</b> = Vuelta
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <!-- Datos de rutas del Callao (separado en su propio archivo) -->
+    <script src="rutas-callao.js"></script>
+
+    <script>
+        const map = L.map('map').setView([-12.050, -77.110], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Función de inicialización: Crea la interfaz leyendo los datos
+        function inicializarUI() {
+            const contenedor = document.getElementById('lista-rutas');
+            for (const [id, datos] of Object.entries(rutasData)) {
+                contenedor.innerHTML += `
+                    <div class="route-toggle">
+                        <input type="checkbox" id="${id}" onchange="toggleRuta('${id}')">
+                        <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
+                    </div>
+                `;
+            }
+        }
+
+        // Lógica del motor de enrutamiento
+        function toggleRuta(idRuta) {
+            const checkbox = document.getElementById(idRuta);
+            const datos = rutasData[idRuta];
+            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
+
+            if (checkbox.checked) {
+                const trazoIda = L.Routing.control({
+                    waypoints: datos.ida, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6 }] }
+                }).addTo(map);
+
+                const trazoVuelta = L.Routing.control({
+                    waypoints: datos.vuelta, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray: '8, 12' }] }
+                }).addTo(map);
+
+                datos.instancias = [trazoIda, trazoVuelta];
+            } else {
+                datos.instancias.forEach(instancia => map.removeControl(instancia));
+                datos.instancias = [];
+            }
+        }
+
+        // Ejecutar al cargar
+        if (typeof rutasData !== 'undefined') {
+            inicializarUI();
+        } else {
+            console.warn("Falta insertar el bloque de datos rutasData");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1370 @@
+// ===================================================================
+// rutas-callao.js
+// Datos de rutas de transporte público - Callao
+// Extraído de Sistema Estructural de Transporte - Callao
+// ===================================================================
+
+const rutasData = {
+    "rutaIM06": {
+        nombre: "E.T. Colonial (IM06)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0620, -77.1470),
+            L.latLng(-12.0560, -77.1180),
+            L.latLng(-12.0535, -77.0950),
+            L.latLng(-12.0460, -77.0425)
+        ],
+        vuelta: [
+            L.latLng(-12.0460, -77.0425),
+            L.latLng(-12.0535, -77.0950),
+            L.latLng(-12.0560, -77.1180),
+            L.latLng(-12.0620, -77.1470)
+        ],
+        instancias: []
+    },
+    "rutaCR71": {
+        nombre: "E.T. La Marina (CR71)",
+        color: '#2980B9',
+        ida: [
+            L.latLng(-12.0621, -77.1352),
+            L.latLng(-12.0725, -77.0850),
+            L.latLng(-12.0831, -77.0450),
+            L.latLng(-12.0831, -77.0253)
+        ],
+        vuelta: [
+            L.latLng(-12.0831, -77.0253),
+            L.latLng(-12.0831, -77.0450),
+            L.latLng(-12.0725, -77.0850),
+            L.latLng(-12.0621, -77.1352)
+        ],
+        instancias: []
+    },
+    "rutaIO52": {
+        nombre: "Consorcio Vía (IO52)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-11.8752, -77.1264),
+            L.latLng(-12.0000, -77.1080),
+            L.latLng(-12.0538, -77.0984),
+            L.latLng(-12.0725, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0725, -77.0850),
+            L.latLng(-12.0538, -77.0984),
+            L.latLng(-12.0000, -77.1080),
+            L.latLng(-11.8752, -77.1264)
+        ],
+        instancias: []
+    },
+    "rutaCR04": {
+        nombre: "E.T. Argentina (CR04)",
+        color: '#F39C12',
+        ida: [
+            L.latLng(-12.0465, -77.1435),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0440, -77.0750),
+            L.latLng(-12.0460, -77.0425)
+        ],
+        vuelta: [
+            L.latLng(-12.0460, -77.0425),
+            L.latLng(-12.0440, -77.0750),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0465, -77.1435)
+        ],
+        instancias: []
+    },
+    "rutaIO66": {
+        nombre: "E.T. Venezuela (IO66)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0650, -77.1400),
+            L.latLng(-12.0645, -77.1132),
+            L.latLng(-12.0590, -77.0850),
+            L.latLng(-12.0550, -77.0400)
+        ],
+        vuelta: [
+            L.latLng(-12.0550, -77.0400),
+            L.latLng(-12.0590, -77.0850),
+            L.latLng(-12.0645, -77.1132),
+            L.latLng(-12.0650, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO09": {
+        nombre: "E.T. Expreso Ventanilla (IO09)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-11.8752, -77.1264),
+            L.latLng(-12.0250, -77.1000),
+            L.latLng(-12.0621, -77.1352)
+        ],
+        vuelta: [
+            L.latLng(-12.0621, -77.1352),
+            L.latLng(-12.0250, -77.1000),
+            L.latLng(-11.8752, -77.1264)
+        ],
+        instancias: []
+    },
+    "rutaOM28": {
+        nombre: "E.T. Translima (OM28)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0550, -77.1500),
+            L.latLng(-12.0600, -77.1200),
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.1200, -77.0200)
+        ],
+        vuelta: [
+            L.latLng(-12.1200, -77.0200),
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0600, -77.1200),
+            L.latLng(-12.0550, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaCR16": {
+        nombre: "E.T. Sol de Oro (CR16)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0300, -77.0800),
+            L.latLng(-12.0000, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0000, -77.0500),
+            L.latLng(-12.0300, -77.0800),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO07": {
+        nombre: "E.T. Los Chanos (IO07)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0620, -77.1300),
+            L.latLng(-12.0500, -77.0900),
+            L.latLng(-12.0400, -77.0200)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0200),
+            L.latLng(-12.0500, -77.0900),
+            L.latLng(-12.0620, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaCR43": {
+        nombre: "E.T. Santa Cruz (CR43)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0500, -77.1400),
+            L.latLng(-12.0550, -77.1000),
+            L.latLng(-12.0600, -77.0300)
+        ],
+        vuelta: [
+            L.latLng(-12.0600, -77.0300),
+            L.latLng(-12.0550, -77.1000),
+            L.latLng(-12.0500, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM11": {
+        nombre: "E.T. Consorcio Grupo Express (IM11)",
+        color: '#2C3E50',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0500, -77.0700),
+            L.latLng(-12.0900, -77.0100)
+        ],
+        vuelta: [
+            L.latLng(-12.0900, -77.0100),
+            L.latLng(-12.0500, -77.0700),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaOM30": {
+        nombre: "E.T. Sesosa (OM30)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0600, -77.1400),
+            L.latLng(-12.0300, -77.0900),
+            L.latLng(-12.0000, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0000, -77.0500),
+            L.latLng(-12.0300, -77.0900),
+            L.latLng(-12.0600, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO55": {
+        nombre: "E.T. Chalacos Unidos (IO55)",
+        color: '#E74C3C',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0580, -77.1000),
+            L.latLng(-12.0500, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0500),
+            L.latLng(-12.0580, -77.1000),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR35": {
+        nombre: "E.T. El Amauta (CR35)",
+        color: '#2ECC71',
+        ida: [
+            L.latLng(-12.0650, -77.1400),
+            L.latLng(-12.0700, -77.0900),
+            L.latLng(-12.0800, -77.0200)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0200),
+            L.latLng(-12.0700, -77.0900),
+            L.latLng(-12.0650, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaOM32": {
+        nombre: "E.T. Orion (OM32)",
+        color: '#7F8C8D',
+        ida: [
+            L.latLng(-12.0450, -77.1300),
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0300, -77.0200)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0200),
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0450, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaIM04": {
+        nombre: "E.T. Consorcio Grupo Orión (IM04)",
+        color: '#E91E63',
+        ida: [
+            L.latLng(-12.0500, -77.1400),
+            L.latLng(-12.0450, -77.0900),
+            L.latLng(-12.0400, -77.0300)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0300),
+            L.latLng(-12.0450, -77.0900),
+            L.latLng(-12.0500, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO03": {
+        nombre: "E.T. Línea 2000 (IO03)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0550, -77.1000),
+            L.latLng(-12.0500, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0600),
+            L.latLng(-12.0550, -77.1000),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaCR19": {
+        nombre: "E.T. Roma (CR19)",
+        color: '#34495E',
+        ida: [
+            L.latLng(-12.0550, -77.1450),
+            L.latLng(-12.0480, -77.0900),
+            L.latLng(-12.0350, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0350, -77.0500),
+            L.latLng(-12.0480, -77.0900),
+            L.latLng(-12.0550, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIM19": {
+        nombre: "E.T. Vipusa (IM19)",
+        color: '#2ECC71',
+        ida: [
+            L.latLng(-12.0600, -77.1400),
+            L.latLng(-12.0200, -77.0800),
+            L.latLng(-11.9500, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-11.9500, -77.0500),
+            L.latLng(-12.0200, -77.0800),
+            L.latLng(-12.0600, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO89": {
+        nombre: "E.T. Virgen de la Puerta (IO89)",
+        color: '#F39C12',
+        ida: [
+            L.latLng(-12.0500, -77.1300),
+            L.latLng(-12.0600, -77.0800),
+            L.latLng(-12.0800, -77.0300)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0300),
+            L.latLng(-12.0600, -77.0800),
+            L.latLng(-12.0500, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaCR78": {
+        nombre: "E.T. Palmari (CR78)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0650, -77.1400),
+            L.latLng(-12.0750, -77.1000),
+            L.latLng(-12.0900, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0900, -77.0500),
+            L.latLng(-12.0750, -77.1000),
+            L.latLng(-12.0650, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM21": {
+        nombre: "E.T. Urbanito (IM21)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0600, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0600, -77.0700),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO06": {
+        nombre: "E.T. La Nueva Estrella (IO06)",
+        color: '#E74C3C',
+        ida: [
+            L.latLng(-12.0550, -77.1350),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0300, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0500),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0550, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR41": {
+        nombre: "E.T. California (CR41)",
+        color: '#1ABC9C',
+        ida: [
+            L.latLng(-12.0620, -77.1450),
+            L.latLng(-12.0700, -77.1200),
+            L.latLng(-12.0800, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0800),
+            L.latLng(-12.0700, -77.1200),
+            L.latLng(-12.0620, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaOM14": {
+        nombre: "E.T. Salvador (OM14)",
+        color: '#888888',
+        ida: [
+            L.latLng(-12.0500, -77.1500),
+            L.latLng(-12.0600, -77.1100),
+            L.latLng(-12.0700, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0700, -77.0600),
+            L.latLng(-12.0600, -77.1100),
+            L.latLng(-12.0500, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaIO76": {
+        nombre: "E.T. Los Magníficos (IO76)",
+        color: '#2C3E50',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0400, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0600),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR20": {
+        nombre: "E.T. Línea 20 (CR20)",
+        color: '#95A5A6',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM24": {
+        nombre: "E.T. El Rápido (IM24)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0400, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaOM18": {
+        nombre: "E.T. Huáscar (OM18)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO96": {
+        nombre: "E.T. Los Laureles (IO96)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0250, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0250, -77.0700),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR62": {
+        nombre: "E.T. San Germán (CR62)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0450, -77.0550)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0550),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIM55": {
+        nombre: "E.T. Santa Rosa (IM55)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0500, -77.1450),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0350, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0350, -77.0750),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0500, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO14": {
+        nombre: "E.T. El Rápido (IO14)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0850),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR74": {
+        nombre: "E.T. Corazón de Jesús (CR74)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0550, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0550, -77.0650),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIM08": {
+        nombre: "E.T. San Juan (IM08)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0550, -77.1350),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0400, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0750),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0550, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIO80": {
+        nombre: "E.T. Unidos (IO80)",
+        color: '#34495E',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0400, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0700),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR38": {
+        nombre: "E.T. Línea 38 (CR38)",
+        color: '#E91E63',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0600, -77.1000),
+            L.latLng(-12.0700, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0700, -77.0600),
+            L.latLng(-12.0600, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM05": {
+        nombre: "E.T. Consorcio 5 (IM05)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0450, -77.1350),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIO77": {
+        nombre: "E.T. Los Magníficos II (IO77)",
+        color: '#2ECC71',
+        ida: [
+            L.latLng(-12.0620, -77.1400),
+            L.latLng(-12.0550, -77.1100),
+            L.latLng(-12.0450, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0700),
+            L.latLng(-12.0550, -77.1100),
+            L.latLng(-12.0620, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR12": {
+        nombre: "E.T. Línea 12 (CR12)",
+        color: '#F39C12',
+        ida: [
+            L.latLng(-12.0500, -77.1300),
+            L.latLng(-12.0600, -77.0900),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0600, -77.0900),
+            L.latLng(-12.0500, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaIM33": {
+        nombre: "E.T. Transpesa (IM33)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0750, -77.1050),
+            L.latLng(-12.0900, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0900, -77.0600),
+            L.latLng(-12.0750, -77.1050),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO22": {
+        nombre: "E.T. El Rápido II (IO22)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0500, -77.1150),
+            L.latLng(-12.0600, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0600, -77.0750),
+            L.latLng(-12.0500, -77.1150),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR55": {
+        nombre: "E.T. California II (CR55)",
+        color: '#E74C3C',
+        ida: [
+            L.latLng(-12.0550, -77.1300),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0550, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaIM44": {
+        nombre: "E.T. Salvador II (IM44)",
+        color: '#1ABC9C',
+        ida: [
+            L.latLng(-12.0620, -77.1450),
+            L.latLng(-12.0700, -77.1250),
+            L.latLng(-12.0800, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0850),
+            L.latLng(-12.0700, -77.1250),
+            L.latLng(-12.0620, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO11": {
+        nombre: "E.T. Los Laureles II (IO11)",
+        color: '#888888',
+        ida: [
+            L.latLng(-12.0500, -77.1550),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0700, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0700, -77.0650),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.1550)
+        ],
+        instancias: []
+    },
+    "rutaIO60": {
+        nombre: "E.T. Los Magníficos IV (IO60)",
+        color: '#34495E',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0400, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0600),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR77": {
+        nombre: "E.T. Línea 77 (CR77)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM22": {
+        nombre: "E.T. El Rápido VII (IM22)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0400, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaOM88": {
+        nombre: "E.T. Huáscar IV (OM88)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO10": {
+        nombre: "E.T. Los Laureles V (IO10)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0250, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0250, -77.0700),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR44": {
+        nombre: "E.T. San Germán IV (CR44)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0450, -77.0550)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0550),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIM50": {
+        nombre: "E.T. Santa Rosa IV (IM50)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0500, -77.1450),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0350, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0350, -77.0750),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0500, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO05": {
+        nombre: "E.T. El Rápido VIII (IO05)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0850),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR66": {
+        nombre: "E.T. Corazón de Jesús IV (CR66)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0550, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0550, -77.0650),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIM07": {
+        nombre: "E.T. San Juan IV (IM07)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0550, -77.1350),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0400, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0750),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0550, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIO90": {
+        nombre: "E.T. Unidos II (IO90)",
+        color: '#34495E',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0400, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0700),
+            L.latLng(-12.0500, -77.1100),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR13": {
+        nombre: "E.T. Línea 13 (CR13)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0600, -77.1000),
+            L.latLng(-12.0700, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0700, -77.0600),
+            L.latLng(-12.0600, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM03": {
+        nombre: "E.T. Consorcio 3 (IM03)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0450, -77.1350),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIO70": {
+        nombre: "E.T. Los Magníficos V (IO70)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0620, -77.1400),
+            L.latLng(-12.0550, -77.1100),
+            L.latLng(-12.0450, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0700),
+            L.latLng(-12.0550, -77.1100),
+            L.latLng(-12.0620, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR10": {
+        nombre: "E.T. Línea 10 (CR10)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0500, -77.1300),
+            L.latLng(-12.0600, -77.0900),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0600, -77.0900),
+            L.latLng(-12.0500, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaIM30": {
+        nombre: "E.T. Transpesa II (IM30)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0750, -77.1050),
+            L.latLng(-12.0900, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0900, -77.0600),
+            L.latLng(-12.0750, -77.1050),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO20": {
+        nombre: "E.T. El Rápido IX (IO20)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0500, -77.1150),
+            L.latLng(-12.0600, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0600, -77.0750),
+            L.latLng(-12.0500, -77.1150),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR50": {
+        nombre: "E.T. California III (CR50)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0550, -77.1300),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0450, -77.1000),
+            L.latLng(-12.0550, -77.1300)
+        ],
+        instancias: []
+    },
+    "rutaIM40": {
+        nombre: "E.T. Salvador III (IM40)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0620, -77.1450),
+            L.latLng(-12.0700, -77.1250),
+            L.latLng(-12.0800, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0850),
+            L.latLng(-12.0700, -77.1250),
+            L.latLng(-12.0620, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO08": {
+        nombre: "E.T. Los Laureles VI (IO08)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0500, -77.1550),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0700, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0700, -77.0650),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.1550)
+        ],
+        instancias: []
+    },
+    "rutaIO40": {
+        nombre: "E.T. Los Magníficos VI (IO40)",
+        color: '#34495E',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0400, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0600),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR22": {
+        nombre: "E.T. Línea 22 (CR22)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM15": {
+        nombre: "E.T. El Rápido X (IM15)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0400, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaOM44": {
+        nombre: "E.T. Huáscar V (OM44)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO55B": {
+        nombre: "E.T. Los Laureles VII (IO55B)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0250, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0250, -77.0700),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR30": {
+        nombre: "E.T. San Germán V (CR30)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0450, -77.0550)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0550),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIM70": {
+        nombre: "E.T. Santa Rosa V (IM70)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0500, -77.1450),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0350, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0350, -77.0750),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0500, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO04": {
+        nombre: "E.T. El Rápido XI (IO04)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0850),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR90": {
+        nombre: "E.T. Corazón de Jesús V (CR90)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0550, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0550, -77.0650),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIM06B": {
+        nombre: "E.T. San Juan V (IM06B)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0550, -77.1350),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0400, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0750),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0550, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIO01": {
+        nombre: "E.T. Consorcio 1 (IO01)",
+        color: '#2C3E50',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0400, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0600),
+            L.latLng(-12.0500, -77.1000),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR01": {
+        nombre: "E.T. Línea 1 (CR01)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM00": {
+        nombre: "E.T. El Rápido Base (IM00)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0400, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaOM01": {
+        nombre: "E.T. Huáscar Base (OM01)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO00": {
+        nombre: "E.T. Los Laureles Master (IO00)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0250, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0250, -77.0700),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO02": {
+        nombre: "E.T. Consorcio Vía II (IO02)",
+        color: '#2C3E50',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0500, -77.0900),
+            L.latLng(-12.0400, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0500),
+            L.latLng(-12.0500, -77.0900),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaCR08": {
+        nombre: "E.T. Línea 8 (CR08)",
+        color: '#9B59B6',
+        ida: [
+            L.latLng(-12.0450, -77.1400),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0300, -77.0600)
+        ],
+        vuelta: [
+            L.latLng(-12.0300, -77.0600),
+            L.latLng(-12.0400, -77.1000),
+            L.latLng(-12.0450, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIM10": {
+        nombre: "E.T. El Rápido III (IM10)",
+        color: '#E67E22',
+        ida: [
+            L.latLng(-12.0600, -77.1500),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0400, -77.0800)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0800),
+            L.latLng(-12.0500, -77.1200),
+            L.latLng(-12.0600, -77.1500)
+        ],
+        instancias: []
+    },
+    "rutaOM09": {
+        nombre: "E.T. Huáscar II (OM09)",
+        color: '#27AE60',
+        ida: [
+            L.latLng(-12.0550, -77.1400),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0800, -77.0500)
+        ],
+        vuelta: [
+            L.latLng(-12.0800, -77.0500),
+            L.latLng(-12.0650, -77.1000),
+            L.latLng(-12.0550, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaIO44": {
+        nombre: "E.T. Los Laureles III (IO44)",
+        color: '#C0392B',
+        ida: [
+            L.latLng(-12.0400, -77.1400),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0250, -77.0700)
+        ],
+        vuelta: [
+            L.latLng(-12.0250, -77.0700),
+            L.latLng(-12.0350, -77.1100),
+            L.latLng(-12.0400, -77.1400)
+        ],
+        instancias: []
+    },
+    "rutaCR52": {
+        nombre: "E.T. San Germán II (CR52)",
+        color: '#8E44AD',
+        ida: [
+            L.latLng(-12.0620, -77.1350),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0450, -77.0550)
+        ],
+        vuelta: [
+            L.latLng(-12.0450, -77.0550),
+            L.latLng(-12.0550, -77.1050),
+            L.latLng(-12.0620, -77.1350)
+        ],
+        instancias: []
+    },
+    "rutaIM60": {
+        nombre: "E.T. Santa Rosa II (IM60)",
+        color: '#3498DB',
+        ida: [
+            L.latLng(-12.0500, -77.1450),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0350, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0350, -77.0750),
+            L.latLng(-12.0450, -77.1150),
+            L.latLng(-12.0500, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIO29": {
+        nombre: "E.T. El Rápido IV (IO29)",
+        color: '#F1C40F',
+        ida: [
+            L.latLng(-12.0650, -77.1450),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0500, -77.0850)
+        ],
+        vuelta: [
+            L.latLng(-12.0500, -77.0850),
+            L.latLng(-12.0600, -77.1150),
+            L.latLng(-12.0650, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaCR88": {
+        nombre: "E.T. Corazón de Jesús II (CR88)",
+        color: '#D35400',
+        ida: [
+            L.latLng(-12.0400, -77.1450),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0550, -77.0650)
+        ],
+        vuelta: [
+            L.latLng(-12.0550, -77.0650),
+            L.latLng(-12.0450, -77.1050),
+            L.latLng(-12.0400, -77.1450)
+        ],
+        instancias: []
+    },
+    "rutaIM02": {
+        nombre: "E.T. San Juan II (IM02)",
+        color: '#16A085',
+        ida: [
+            L.latLng(-12.0550, -77.1350),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0400, -77.0750)
+        ],
+        vuelta: [
+            L.latLng(-12.0400, -77.0750),
+            L.latLng(-12.0500, -77.1050),
+            L.latLng(-12.0550, -77.1350)
+        ],
+        instancias: []
+    }
+};
