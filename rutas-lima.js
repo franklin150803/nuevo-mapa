@@ -1,4 +1,3 @@
-
 // rutas-lima.js - Siguiendo estructura estricta de ejemplo
 const rutasLima = {
     "LM01": { 
@@ -60,7 +59,7 @@ const rutasLima = {
         color: '#E67E22', 
         ida: [[-12.0550, -77.1400], [-12.0500, -77.1000], [-12.0450, -77.0600]],
         vuelta: [[-12.0450, -77.0600], [-12.0500, -77.1000], [-12.0550, -77.1400]]
-    },
+    }
     // Continuación de rutas-lima.js (11-20)
 const rutasLimaCont = {
     "LM11": { 
