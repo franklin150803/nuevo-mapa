@@ -1,4 +1,4 @@
-// Base de datos de transporte: Cusco (CUS001-015)
+// Base de datos de transporte: Cusco (CUS001-090)
 const rutasCusco = {
     "CUS001": { 
         nombre: "ET Imperial - Centro (Ruta 01)", 
