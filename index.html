@@ -130,6 +130,7 @@
     <script src="rutas-moquegua.js"></script>
     <script src="rutas-puno.js"></script>
     <script src="rutas-apurimac.js"></script>
+    <script src="rutas-ayacucho.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -158,7 +159,8 @@
             "Tacna": (typeof rutasTacna !== 'undefined') ? rutasTacna : {},
             "Moquegua": (typeof rutasMoquegua !== 'undefined') ? rutasMoquegua : {},
             "Puno": (typeof rutasPuno !== 'undefined') ? rutasPuno : {},
-            "Apurímac": (typeof rutasApurimac !== 'undefined') ? rutasApurimac : {}
+            "Apurímac": (typeof rutasApurimac !== 'undefined') ? rutasApurimac : {},
+            "Ayacucho": (typeof rutasAyacucho !== 'undefined') ? rutasAyacucho : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
