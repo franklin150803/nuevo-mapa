@@ -137,6 +137,7 @@
     <script src="rutas-pasco.js"></script>
     <script src="rutas-ancash.js"></script>
     <script src="rutas-sanmartin.js"></script>
+    <script src="rutas-amazonas.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -172,7 +173,8 @@
             "Junín": (typeof rutasJunin !== 'undefined') ? rutasJunin : {},
             "Pasco": (typeof rutasPasco !== 'undefined') ? rutasPasco : {},
             "Áncash": (typeof rutasAncash !== 'undefined') ? rutasAncash : {},
-            "San Martín": (typeof rutasSanMartin !== 'undefined') ? rutasSanMartin : {}
+            "San Martín": (typeof rutasSanMartin !== 'undefined') ? rutasSanMartin : {},
+            "Amazonas": (typeof rutasAmazonas !== 'undefined') ? rutasAmazonas : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
