@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Estructural de Transporte - Lima y Callao</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; }
+        #map { height: 100vh; width: 100%; }
+        .leaflet-routing-container { display: none !important; }
+
+        /* ---------- Botón hamburguesa ---------- */
+        .hamburger-btn {
+            position: absolute; top: 15px; right: 15px; z-index: 1100;
+            width: 46px; height: 46px; border-radius: 8px; border: none;
+            background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            cursor: pointer; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 5px; padding: 0;
+            transition: background 0.2s;
+        }
+        .hamburger-btn:active { background: #eee; }
+        .hamburger-btn span {
+            display: block; width: 22px; height: 3px; background: #333;
+            border-radius: 2px; transition: transform 0.25s, opacity 0.25s;
+        }
+        .hamburger-btn.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        /* ---------- Overlay (fondo oscuro al abrir el menú) ---------- */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+            z-index: 1050; opacity: 0; pointer-events: none;
+            transition: opacity 0.25s;
+        }
+        .overlay.visible { opacity: 1; pointer-events: auto; }
+
+        /* ---------- Panel lateral (drawer) ---------- */
+        .control-panel {
+            position: fixed; top: 0; right: 0; height: 100%; z-index: 1080;
+            background: rgba(255, 255, 255, 0.97); padding: 70px 15px 15px 15px;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+            width: 280px; max-width: 82vw; overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.28s ease;
+        }
+        .control-panel.open { transform: translateX(0); }
+        /* Mientras se arrastra con el dedo, sin animación (se sigue el dedo en tiempo real) */
+        .control-panel.dragging { transition: none; }
+
+        .control-panel h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;}
+
+        /* ---------- Acordeón de departamentos ---------- */
+        .distrito-bloque { margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+
+        .distrito-header {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            background: #f5f5f5; border: none; padding: 12px 14px; cursor: pointer;
+            font-size: 14px; font-weight: bold; color: #222; text-transform: uppercase;
+            text-align: left; transition: background 0.2s;
+        }
+        .distrito-header:active { background: #e8e8e8; }
+        .distrito-header .chevron {
+            font-size: 12px; transition: transform 0.25s; color: #666; margin-left: 8px;
+        }
+        .distrito-header.abierto .chevron { transform: rotate(180deg); }
+
+        .distrito-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 12px;
+        }
+        .distrito-content.abierto { padding: 10px 12px; }
+
+        .route-toggle { margin-bottom: 12px; display: flex; align-items: center; font-size: 13px; font-weight: bold;}
+        .route-toggle input { margin-right: 10px; cursor: pointer; width: 16px; height: 16px; }
+        .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
+        .legend { font-size: 11px; color: #555; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 5px;}
+
+        /* Zona invisible en el borde derecho de la pantalla para iniciar el gesto de "jalar" y abrir el menú */
+        .edge-swipe-zone {
+            position: fixed; top: 0; right: 0; width: 24px; height: 100%;
+            z-index: 1090; touch-action: none;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menú de rutas">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="edge-swipe-zone" id="edgeSwipeZone"></div>
+
+    <div class="control-panel" id="controlPanel">
+        <h3>📍 Rutas de Transporte</h3>
+
+        <div id="lista-rutas"></div>
+
+        <div class="legend">
+            <b>Línea continua</b> = Ida<br>
+            <b>Línea punteada</b> = Vuelta
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <!-- Datos de rutas por distrito (cada distrito en su propio archivo) -->
+    <script src="rutas-callao.js"></script>
+    <script src="rutas-lima.js"></script>
+    <script src="rutas-arequipa.js"></script>
+    <script src="rutas-trujillo.js"></script>
+    <script src="rutas-cusco.js"></script>
+
+    <script>
+        const map = L.map('map').setView([-12.050, -77.080], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // ------------------------------------------------------------------
+        // Registro central de departamentos/distritos. Para agregar uno nuevo:
+        // 1. Crea su archivo rutas-<nombre>.js con su propia variable (ej. rutasSJL)
+        // 2. Agrega un <script src="rutas-<nombre>.js"> arriba
+        // 3. Agrega una entrada aquí: "Nombre a mostrar": variableDeRutas
+        // ------------------------------------------------------------------
+        const distritosData = {
+            "Callao": (typeof rutasData !== 'undefined') ? rutasData : {},
+            "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {},
+            "Arequipa": (typeof rutasArequipa !== 'undefined') ? rutasArequipa : {},
+            "La Libertad": (typeof rutasTrujillo !== 'undefined') ? rutasTrujillo : {},
+            "Cusco": (typeof rutasCusco !== 'undefined') ? rutasCusco : {}
+        };
+
+        // Busca una ruta por su id en cualquiera de los departamentos registrados
+        function buscarRuta(idRuta) {
+            for (const distrito in distritosData) {
+                if (distritosData[distrito][idRuta]) {
+                    return distritosData[distrito][idRuta];
+                }
+            }
+            return null;
+        }
+
+        // Genera un id de HTML seguro a partir del nombre del departamento (sin tildes ni espacios)
+        function idSeguro(nombre) {
+            return nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+        }
+
+        // Función de inicialización: Crea el menú tipo acordeón, un bloque por departamento
+        function inicializarUI() {
+            const contenedor = document.getElementById('lista-rutas');
+            let html = '';
+
+            for (const [distrito, rutas] of Object.entries(distritosData)) {
+                const ids = Object.keys(rutas);
+                if (ids.length === 0) continue;
+
+                const distritoId = idSeguro(distrito);
+
+                html += `
+                    <div class="distrito-bloque">
+                        <button type="button" class="distrito-header" id="header-${distritoId}" onclick="toggleDistrito('${distritoId}')">
+                            <span>${distrito} (${ids.length})</span>
+                            <span class="chevron">▼</span>
+                        </button>
+                        <div class="distrito-content" id="content-${distritoId}">
+                `;
+
+                for (const [id, datos] of Object.entries(rutas)) {
+                    html += `
+                        <div class="route-toggle">
+                            <input type="checkbox" id="${id}" onchange="toggleRuta('${id}')">
+                            <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
+                        </div>
+                    `;
+                }
+
+                html += `</div></div>`;
+            }
+
+            contenedor.innerHTML = html;
+        }
+
+        // Abre/cierra el submenú de un departamento (acordeón)
+        function toggleDistrito(distritoId) {
+            const header = document.getElementById(`header-${distritoId}`);
+            const content = document.getElementById(`content-${distritoId}`);
+            const estabaAbierto = content.classList.contains('abierto');
+
+            if (estabaAbierto) {
+                content.style.maxHeight = '0px';
+                content.classList.remove('abierto');
+                header.classList.remove('abierto');
+            } else {
+                content.classList.add('abierto');
+                header.classList.add('abierto');
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        }
+
+        // Lógica del motor de enrutamiento
+        function toggleRuta(idRuta) {
+            const checkbox = document.getElementById(idRuta);
+            const datos = buscarRuta(idRuta);
+            if (!datos) return;
+
+            // Compatibilidad: algunos archivos (ej. rutas-lima.js) no traen "instancias"
+            if (!datos.instancias) datos.instancias = [];
+
+            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
+
+            if (checkbox.checked) {
+                const trazoIda = L.Routing.control({
+                    waypoints: datos.ida, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6 }] }
+                }).addTo(map);
+
+                const trazoVuelta = L.Routing.control({
+                    waypoints: datos.vuelta, ...configBase,
+                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray: '8, 12' }] }
+                }).addTo(map);
+
+                datos.instancias = [trazoIda, trazoVuelta];
+            } else {
+                datos.instancias.forEach(instancia => map.removeControl(instancia));
+                datos.instancias = [];
+            }
+        }
+
+        // Ejecutar al cargar
+        inicializarUI();
+
+        // ==================================================================
+        // MENÚ HAMBURGUESA (drawer) + GESTO DE DESLIZAR (swipe) EN MÓVILES
+        // ==================================================================
+        const panel = document.getElementById('controlPanel');
+        const overlay = document.getElementById('overlay');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const edgeSwipeZone = document.getElementById('edgeSwipeZone');
+
+        const PANEL_WIDTH = () => panel.getBoundingClientRect().width;
+
+        function abrirMenu() {
+            panel.classList.remove('dragging');
+            panel.style.transform = '';
+            panel.classList.add('open');
+            overlay.classList.add('visible');
+            hamburgerBtn.classList.add('active');
+        }
+
+        function cerrarMenu() {
+            panel.classList.remove('dragging');
+            panel.style.transform = '';
+            panel.classList.remove('open');
+            overlay.classList.remove('visible');
+            hamburgerBtn.classList.remove('active');
+        }
+
+        function toggleMenu() {
+            if (panel.classList.contains('open')) cerrarMenu();
+            else abrirMenu();
+        }
+
+        hamburgerBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', cerrarMenu);
+
+        // --- Gesto de arrastre (swipe) para abrir/cerrar el menú con el dedo ---
+        let dragStartX = null;
+        let dragCurrentX = null;
+        let draggingFromEdge = false;
+        let draggingFromPanel = false;
+
+        function iniciarArrastre(x, desdeBorde) {
+            dragStartX = x;
+            dragCurrentX = x;
+            draggingFromEdge = desdeBorde;
+            draggingFromPanel = !desdeBorde;
+            panel.classList.add('dragging');
+        }
+
+        function moverArrastre(x) {
+            if (dragStartX === null) return;
+            dragCurrentX = x;
+            const deltaX = dragCurrentX - dragStartX;
+            const ancho = PANEL_WIDTH();
+
+            let offset;
+            if (draggingFromEdge) {
+                // Abriendo: arrastrando desde el borde derecho hacia la izquierda
+                offset = Math.min(ancho, Math.max(0, -deltaX));
+                panel.style.transform = `translateX(${ancho - offset}px)`;
+            } else if (draggingFromPanel) {
+                // Cerrando: arrastrando el panel abierto hacia la derecha
+                offset = Math.min(ancho, Math.max(0, deltaX));
+                panel.style.transform = `translateX(${offset}px)`;
+            }
+
+            if (offset > 10) overlay.classList.add('visible');
+        }
+
+        function terminarArrastre() {
+            if (dragStartX === null) return;
+            const deltaX = dragCurrentX - dragStartX;
+            const ancho = PANEL_WIDTH();
+            const umbral = ancho * 0.3;
+
+            if (draggingFromEdge) {
+                if (-deltaX > umbral) abrirMenu();
+                else cerrarMenu();
+            } else if (draggingFromPanel) {
+                if (deltaX > umbral) cerrarMenu();
+                else abrirMenu();
+            }
+
+            dragStartX = null;
+            dragCurrentX = null;
+            draggingFromEdge = false;
+            draggingFromPanel = false;
+        }
+
+        // Touch: zona de borde derecho -> abre el menú al jalar hacia la izquierda
+        edgeSwipeZone.addEventListener('touchstart', (e) => {
+            iniciarArrastre(e.touches[0].clientX, true);
+        }, { passive: true });
+
+        // Touch: dentro del panel ya abierto -> cierra al jalar hacia la derecha
+        panel.addEventListener('touchstart', (e) => {
+            if (panel.classList.contains('open')) {
+                iniciarArrastre(e.touches[0].clientX, false);
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (dragStartX !== null) moverArrastre(e.touches[0].clientX);
+        }, { passive: true });
+
+        document.addEventListener('touchend', terminarArrastre);
+        document.addEventListener('touchcancel', terminarArrastre);
+
+        // Mouse (para poder probar el arrastre también en escritorio)
+        edgeSwipeZone.addEventListener('mousedown', (e) => iniciarArrastre(e.clientX, true));
+        panel.addEventListener('mousedown', (e) => {
+            if (panel.classList.contains('open')) iniciarArrastre(e.clientX, false);
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (dragStartX !== null) moverArrastre(e.clientX);
+        });
+        document.addEventListener('mouseup', terminarArrastre);
+    </script>
+</body>
+</html>
