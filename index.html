@@ -121,6 +121,7 @@
     <script src="rutas-trujillo.js"></script>
     <script src="rutas-cusco.js"></script>
     <script src="rutas-piura.js"></script>
+    <script src="rutas-chiclayo.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -140,7 +141,8 @@
             "Arequipa": (typeof rutasArequipa !== 'undefined') ? rutasArequipa : {},
             "La Libertad": (typeof rutasTrujillo !== 'undefined') ? rutasTrujillo : {},
             "Cusco": (typeof rutasCusco !== 'undefined') ? rutasCusco : {},
-            "Piura": (typeof rutasPiura !== 'undefined') ? rutasPiura : {}
+            "Piura": (typeof rutasPiura !== 'undefined') ? rutasPiura : {},
+            "Lambayeque": (typeof rutasChiclayo !== 'undefined') ? rutasChiclayo : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
