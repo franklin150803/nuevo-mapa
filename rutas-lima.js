@@ -1,4 +1,3 @@
-// rutas-lima.js - Siguiendo estructura estricta de ejemplo
 const rutasLima = {
     "LM01": { 
         nombre: "Corredor Azul (301)", 
@@ -59,8 +58,7 @@ const rutasLima = {
         color: '#E67E22', 
         ida: [[-12.0550, -77.1400], [-12.0500, -77.1000], [-12.0450, -77.0600]],
         vuelta: [[-12.0450, -77.0600], [-12.0500, -77.1000], [-12.0550, -77.1400]]
-    }
-    // Continuación de rutas-lima.js (11-20)
+    },
 const rutasLimaCont = {
     "LM11": { 
         nombre: "ET Santa Cruz (SO-02)", 
@@ -122,7 +120,6 @@ const rutasLimaCont = {
         ida: [[-12.0400, -77.0800], [-12.0600, -77.0500], [-12.0800, -77.0200]],
         vuelta: [[-12.0800, -77.0200], [-12.0600, -77.0500], [-12.0400, -77.0800]]
     },
-    // Continuación de rutas-lima.js (21-30)
 const rutasLimaCont2 = {
     "LM21": { 
         nombre: "ET Salvador S.A.C. (SO-03)", 
@@ -184,7 +181,6 @@ const rutasLimaCont2 = {
         ida: [[-11.9900, -77.0200], [-12.0200, -77.0000], [-12.0500, -76.9800]],
         vuelta: [[-12.0500, -76.9800], [-12.0200, -77.0000], [-11.9900, -77.0200]]
     },
-    // Continuación de rutas-lima.js (31-40)
 const rutasLimaCont3 = {
     "LM31": { 
         nombre: "ET Los Libertadores (IO-76)", 
