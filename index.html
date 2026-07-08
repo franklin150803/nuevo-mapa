@@ -135,6 +135,7 @@
     <script src="rutas-huancavelica.js"></script>
     <script src="rutas-junin.js"></script>
     <script src="rutas-pasco.js"></script>
+    <script src="rutas-ancash.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -168,7 +169,8 @@
             "Ica": (typeof rutasIca !== 'undefined') ? rutasIca : {},
             "Huancavelica": (typeof rutasHuancavelica !== 'undefined') ? rutasHuancavelica : {},
             "Junín": (typeof rutasJunin !== 'undefined') ? rutasJunin : {},
-            "Pasco": (typeof rutasPasco !== 'undefined') ? rutasPasco : {}
+            "Pasco": (typeof rutasPasco !== 'undefined') ? rutasPasco : {},
+            "Áncash": (typeof rutasAncash !== 'undefined') ? rutasAncash : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
