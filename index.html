@@ -120,6 +120,7 @@
     <script src="rutas-arequipa.js"></script>
     <script src="rutas-trujillo.js"></script>
     <script src="rutas-cusco.js"></script>
+    <script src="rutas-piura.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -138,7 +139,8 @@
             "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {},
             "Arequipa": (typeof rutasArequipa !== 'undefined') ? rutasArequipa : {},
             "La Libertad": (typeof rutasTrujillo !== 'undefined') ? rutasTrujillo : {},
-            "Cusco": (typeof rutasCusco !== 'undefined') ? rutasCusco : {}
+            "Cusco": (typeof rutasCusco !== 'undefined') ? rutasCusco : {},
+            "Piura": (typeof rutasPiura !== 'undefined') ? rutasPiura : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
@@ -208,6 +210,44 @@
             }
         }
 
+        // Dibuja un tramo (ida o vuelta) usando el motor de rutas callejeras (OSRM).
+        // Si OSRM no logra calcular la ruta (falla de red, sin cobertura vial, etc.),
+        // se cae automáticamente a una línea recta entre los puntos para que SIEMPRE se vea algo.
+        function crearTramo(datos, waypointsRaw, dashArray) {
+            const waypoints = waypointsRaw.map(p => L.latLng(p[0], p[1]));
+            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
+
+            const control = L.Routing.control({
+                waypoints, ...configBase,
+                lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray }] }
+            });
+
+            let resuelto = false;
+            control.on('routesfound', () => { resuelto = true; });
+            control.on('routingerror', () => {
+                if (resuelto) return; // ya se dibujó bien, ignorar
+                map.removeControl(control);
+                const idx = datos.instancias.indexOf(control);
+                if (idx !== -1) datos.instancias.splice(idx, 1);
+                const linea = L.polyline(waypoints, { color: datos.color, opacity: 0.9, weight: 6, dashArray }).addTo(map);
+                datos.instancias.push(linea);
+            });
+
+            control.addTo(map);
+            datos.instancias.push(control);
+        }
+
+        function limpiarInstancias(datos) {
+            datos.instancias.forEach(instancia => {
+                if (instancia instanceof L.Polyline) {
+                    map.removeLayer(instancia);
+                } else {
+                    map.removeControl(instancia);
+                }
+            });
+            datos.instancias = [];
+        }
+
         // Lógica del motor de enrutamiento
         function toggleRuta(idRuta) {
             const checkbox = document.getElementById(idRuta);
@@ -217,28 +257,16 @@
             // Compatibilidad: algunos archivos (ej. rutas-lima.js) no traen "instancias"
             if (!datos.instancias) datos.instancias = [];
 
-            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
-
             if (checkbox.checked) {
-                const trazoIda = L.Routing.control({
-                    waypoints: datos.ida, ...configBase,
-                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6 }] }
-                }).addTo(map);
-
-                const trazoVuelta = L.Routing.control({
-                    waypoints: datos.vuelta, ...configBase,
-                    lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray: '8, 12' }] }
-                }).addTo(map);
-
-                datos.instancias = [trazoIda, trazoVuelta];
+                crearTramo(datos, datos.ida, null);
+                crearTramo(datos, datos.vuelta, '8, 12');
 
                 // Centra/ajusta el mapa automáticamente sobre la ruta activada,
                 // ya que puede estar en un departamento distinto al que se ve por defecto (Lima/Callao)
                 const puntos = [...datos.ida, ...datos.vuelta].map(p => L.latLng(p[0], p[1]));
                 map.flyToBounds(L.latLngBounds(puntos), { padding: [60, 60], maxZoom: 14, duration: 1.2 });
             } else {
-                datos.instancias.forEach(instancia => map.removeControl(instancia));
-                datos.instancias = [];
+                limpiarInstancias(datos);
             }
         }
 
