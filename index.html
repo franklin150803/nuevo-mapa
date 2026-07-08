@@ -231,6 +231,11 @@
                 }).addTo(map);
 
                 datos.instancias = [trazoIda, trazoVuelta];
+
+                // Centra/ajusta el mapa automáticamente sobre la ruta activada,
+                // ya que puede estar en un departamento distinto al que se ve por defecto (Lima/Callao)
+                const puntos = [...datos.ida, ...datos.vuelta].map(p => L.latLng(p[0], p[1]));
+                map.flyToBounds(L.latLngBounds(puntos), { padding: [60, 60], maxZoom: 14, duration: 1.2 });
             } else {
                 datos.instancias.forEach(instancia => map.removeControl(instancia));
                 datos.instancias = [];
