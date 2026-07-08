@@ -117,6 +117,7 @@
     <!-- Datos de rutas por distrito (cada distrito en su propio archivo) -->
     <script src="rutas-callao.js"></script>
     <script src="rutas-lima.js"></script>
+    <script src="rutas-arequipa.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -132,7 +133,8 @@
         // ------------------------------------------------------------------
         const distritosData = {
             "Callao": (typeof rutasData !== 'undefined') ? rutasData : {},
-            "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {}
+            "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {},
+            "Arequipa": (typeof rutasArequipa !== 'undefined') ? rutasArequipa : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
