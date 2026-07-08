@@ -54,12 +54,29 @@
         .control-panel.dragging { transition: none; }
 
         .control-panel h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;}
+
+        /* ---------- Acordeón de departamentos ---------- */
+        .distrito-bloque { margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+
         .distrito-header {
-            font-size: 13px; font-weight: bold; text-transform: uppercase;
-            color: #333; margin: 14px 0 8px 0; padding-top: 8px;
-            border-top: 1px solid #ddd;
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            background: #f5f5f5; border: none; padding: 12px 14px; cursor: pointer;
+            font-size: 14px; font-weight: bold; color: #222; text-transform: uppercase;
+            text-align: left; transition: background 0.2s;
         }
-        .distrito-header:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+        .distrito-header:active { background: #e8e8e8; }
+        .distrito-header .chevron {
+            font-size: 12px; transition: transform 0.25s; color: #666; margin-left: 8px;
+        }
+        .distrito-header.abierto .chevron { transform: rotate(180deg); }
+
+        .distrito-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 12px;
+        }
+        .distrito-content.abierto { padding: 10px 12px; }
+
         .route-toggle { margin-bottom: 12px; display: flex; align-items: center; font-size: 13px; font-weight: bold;}
         .route-toggle input { margin-right: 10px; cursor: pointer; width: 16px; height: 16px; }
         .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
@@ -108,9 +125,9 @@
         }).addTo(map);
 
         // ------------------------------------------------------------------
-        // Registro central de distritos. Para agregar un nuevo distrito:
-        // 1. Crea su archivo rutas-<distrito>.js con su propia variable (ej. rutasSJL)
-        // 2. Agrega un <script src="rutas-<distrito>.js"> arriba
+        // Registro central de departamentos/distritos. Para agregar uno nuevo:
+        // 1. Crea su archivo rutas-<nombre>.js con su propia variable (ej. rutasSJL)
+        // 2. Agrega un <script src="rutas-<nombre>.js"> arriba
         // 3. Agrega una entrada aquí: "Nombre a mostrar": variableDeRutas
         // ------------------------------------------------------------------
         const distritosData = {
@@ -118,7 +135,7 @@
             "Lima": (typeof rutasLima !== 'undefined') ? rutasLima : {}
         };
 
-        // Busca una ruta por su id en cualquiera de los distritos registrados
+        // Busca una ruta por su id en cualquiera de los departamentos registrados
         function buscarRuta(idRuta) {
             for (const distrito in distritosData) {
                 if (distritosData[distrito][idRuta]) {
@@ -128,7 +145,12 @@
             return null;
         }
 
-        // Función de inicialización: Crea la interfaz agrupada por distrito
+        // Genera un id de HTML seguro a partir del nombre del departamento (sin tildes ni espacios)
+        function idSeguro(nombre) {
+            return nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+        }
+
+        // Función de inicialización: Crea el menú tipo acordeón, un bloque por departamento
         function inicializarUI() {
             const contenedor = document.getElementById('lista-rutas');
             let html = '';
@@ -137,7 +159,16 @@
                 const ids = Object.keys(rutas);
                 if (ids.length === 0) continue;
 
-                html += `<div class="distrito-header">${distrito} (${ids.length})</div>`;
+                const distritoId = idSeguro(distrito);
+
+                html += `
+                    <div class="distrito-bloque">
+                        <button type="button" class="distrito-header" id="header-${distritoId}" onclick="toggleDistrito('${distritoId}')">
+                            <span>${distrito} (${ids.length})</span>
+                            <span class="chevron">▼</span>
+                        </button>
+                        <div class="distrito-content" id="content-${distritoId}">
+                `;
 
                 for (const [id, datos] of Object.entries(rutas)) {
                     html += `
@@ -147,9 +178,28 @@
                         </div>
                     `;
                 }
+
+                html += `</div></div>`;
             }
 
             contenedor.innerHTML = html;
+        }
+
+        // Abre/cierra el submenú de un departamento (acordeón)
+        function toggleDistrito(distritoId) {
+            const header = document.getElementById(`header-${distritoId}`);
+            const content = document.getElementById(`content-${distritoId}`);
+            const estabaAbierto = content.classList.contains('abierto');
+
+            if (estabaAbierto) {
+                content.style.maxHeight = '0px';
+                content.classList.remove('abierto');
+                header.classList.remove('abierto');
+            } else {
+                content.classList.add('abierto');
+                header.classList.add('abierto');
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
         }
 
         // Lógica del motor de enrutamiento
@@ -300,12 +350,6 @@
             if (dragStartX !== null) moverArrastre(e.clientX);
         });
         document.addEventListener('mouseup', terminarArrastre);
-
-        // Cerrar automáticamente al elegir una ruta en pantallas pequeñas (opcional, cómodo en móvil)
-        // Se puede comentar esta parte si prefieres que el menú se quede abierto al marcar rutas.
-        // document.getElementById('lista-rutas').addEventListener('change', () => {
-        //     if (window.innerWidth < 600) cerrarMenu();
-        // });
     </script>
 </body>
 </html>
