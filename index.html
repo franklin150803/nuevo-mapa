@@ -128,6 +128,7 @@
     <script src="rutas-madrededios.js"></script>
     <script src="rutas-tacna.js"></script>
     <script src="rutas-moquegua.js"></script>
+    <script src="rutas-puno.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -154,7 +155,8 @@
             "Ucayali": (typeof rutasUcayali !== 'undefined') ? rutasUcayali : {},
             "Madre de Dios": (typeof rutasMadreDeDios !== 'undefined') ? rutasMadreDeDios : {},
             "Tacna": (typeof rutasTacna !== 'undefined') ? rutasTacna : {},
-            "Moquegua": (typeof rutasMoquegua !== 'undefined') ? rutasMoquegua : {}
+            "Moquegua": (typeof rutasMoquegua !== 'undefined') ? rutasMoquegua : {},
+            "Puno": (typeof rutasPuno !== 'undefined') ? rutasPuno : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
