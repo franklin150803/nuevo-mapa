@@ -133,6 +133,7 @@
     <script src="rutas-ayacucho.js"></script>
     <script src="rutas-ica.js"></script>
     <script src="rutas-huancavelica.js"></script>
+    <script src="rutas-junin.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -164,7 +165,8 @@
             "Apurímac": (typeof rutasApurimac !== 'undefined') ? rutasApurimac : {},
             "Ayacucho": (typeof rutasAyacucho !== 'undefined') ? rutasAyacucho : {},
             "Ica": (typeof rutasIca !== 'undefined') ? rutasIca : {},
-            "Huancavelica": (typeof rutasHuancavelica !== 'undefined') ? rutasHuancavelica : {}
+            "Huancavelica": (typeof rutasHuancavelica !== 'undefined') ? rutasHuancavelica : {},
+            "Junín": (typeof rutasJunin !== 'undefined') ? rutasJunin : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
