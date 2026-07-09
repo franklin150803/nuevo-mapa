@@ -29,8 +29,18 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
             cursor: pointer; display: flex; flex-direction: column; align-items: center;
             justify-content: center; gap: 5px; padding: 0;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, box-shadow 0.3s;
             pointer-events: auto;
+            animation: aparecerBoton 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes aparecerBoton {
+            from { opacity: 0; transform: scale(0.6) rotate(-15deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        .hamburger-btn:hover {
+            background: rgba(28, 34, 48, 0.6);
+            box-shadow: 0 10px 30px rgba(41,121,255,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: scale(1.06);
         }
         .hamburger-btn:active { transform: scale(0.92); background: rgba(20, 24, 34, 0.65); }
         .hamburger-btn span {
@@ -53,9 +63,9 @@
         /* ---------- Panel lateral (drawer, glass) ---------- */
         .control-panel {
             position: fixed; top: 0; right: 0; height: 100%; z-index: 9995;
-            background: rgba(16, 20, 30, 0.55);
-            backdrop-filter: blur(24px) saturate(150%);
-            -webkit-backdrop-filter: blur(24px) saturate(150%);
+            background: rgba(16, 20, 30, 0.62);
+            backdrop-filter: blur(19px) saturate(140%);
+            -webkit-backdrop-filter: blur(19px) saturate(140%);
             border-left: 1px solid rgba(255,255,255,0.12);
             padding: 70px 15px 15px 15px;
             box-shadow: -8px 0 32px rgba(0,0,0,0.45);
@@ -79,6 +89,13 @@
             margin-bottom: 8px; border-radius: 12px; overflow: hidden;
             border: 1px solid rgba(255,255,255,0.10);
             background: rgba(255,255,255,0.03);
+            transition: border-color 0.3s, background 0.3s;
+        }
+        /* Departamento con al menos una ruta activa: se resalta para que destaque
+           entre los demás bloques del acordeón (antes todos se veían idénticos) */
+        .distrito-bloque.tiene-activa {
+            border-color: rgba(41,121,255,0.45);
+            background: rgba(41,121,255,0.06);
         }
 
         .distrito-header {
@@ -89,6 +106,11 @@
             text-align: left; transition: background 0.2s;
         }
         .distrito-header:active { background: rgba(255,255,255,0.1); }
+        .distrito-bloque.tiene-activa .distrito-header { color: #fff; }
+        .distrito-bloque.tiene-activa .distrito-header::before {
+            content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            background: #2979FF; box-shadow: 0 0 6px #2979FF; margin-right: 8px;
+        }
         .distrito-header .chevron {
             font-size: 12px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #9aa7bd; margin-left: 8px;
         }
@@ -329,13 +351,32 @@
 
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
 
+        // Evita el spam de consola "Image X could not be loaded" y los cuadros
+        // rotos de íconos POI que no existen en el sprite del estilo (ocurre
+        // sobre todo en modo Día con "liberty"): se registra una imagen vacía
+        // de 1x1 transparente para cualquier ícono que el estilo pida y no
+        // encuentre, así el símbolo simplemente no se dibuja en vez de romperse.
+        map.on('styleimagemissing', (e) => {
+            if (map.hasImage(e.id)) return;
+            const lienzo = { width: 1, height: 1, data: new Uint8Array(4) };
+            map.addImage(e.id, lienzo);
+        });
+
         // Repinta el tema Noche con colores reales (agua azul oscuro, parques/bosque
         // verde oscuro, vías claras y bien visibles, edificios azulados) en vez del
         // gris/negro plano del estilo "dark" original de OpenFreeMap. También corrige
         // las pistas del aeropuerto, que en el estilo original se ven como rectángulos
         // negros sólidos y desentonan con el fondo azul oscuro.
-        // Se aplica con setPaintProperty porque es más liviano que clonar y
-        // reemplazar todo el JSON del estilo.
+        //
+        // Además aplica una JERARQUÍA VIAL real (autopista > avenida > calle > calle
+        // interna) tanto en color como en ancho: en el estilo "dark" original, el
+        // ancho de "highway_minor" (calles) reutiliza literalmente la misma curva de
+        // una capa de pistas de aeropuerto, por lo que a cierto zoom las calles se
+        // veían tan gruesas como las avenidas principales. Aquí se le da a cada nivel
+        // su propia curva de ancho, bien diferenciada.
+        //
+        // Se aplica con setPaintProperty/setLayoutProperty porque es más liviano
+        // que clonar y reemplazar todo el JSON del estilo.
         function personalizarTemaNoche() {
             const paints = {
                 // --- Terreno, agua y vegetación ---
@@ -357,18 +398,21 @@
                 'aeroway-taxiway':      { 'line-color': '#22303f' },
                 'aeroway-runway-casing':{ 'line-color': 'rgba(90,110,135,0.6)' },
 
-                // --- Vías: más claras y visibles (como una calcomanía sobre el mapa) ---
-                'highway_minor':          { 'line-color': '#3a4a63' },
-                'highway_major_casing':   { 'line-color': 'rgba(110,130,155,0.55)' },
+                // --- JERARQUÍA VIAL: color ---
+                // Autopistas: el tono más claro/prominente de todos (el "#D4E2F2" que
+                // pediste, en vez de blanco puro). Avenidas: un peldaño más abajo.
+                // Calles: notablemente más discretas. Calles internas/peatonales: casi mudas.
+                'highway_motorway_inner': { 'line-color': '#D4E2F2' },
+                'highway_motorway_casing':{ 'line-color': 'rgba(8,12,20,0.55)' },
+                'highway_motorway_subtle':{ 'line-color': '#4a5b76' },
                 'highway_major_inner':    { 'line-color': '#9fb2cc' },
-                'highway_major_subtle':   { 'line-color': '#4a5b76' },
-                'highway_motorway_casing':{ 'line-color': 'rgba(110,130,155,0.6)' },
-                'highway_motorway_inner': { 'line-color': '#c7d5e8' },
-                'highway_motorway_subtle':{ 'line-color': '#3a4a63' },
+                'highway_major_casing':   { 'line-color': 'rgba(8,12,20,0.4)' },
+                'highway_major_subtle':   { 'line-color': '#3a4a63' },
+                'highway_minor':          { 'line-color': '#3a4658', 'line-opacity': 0.85 },
                 'highway_path':           { 'line-color': '#22303f' },
-                'railway':                { 'line-color': '#3a4a63' },
-                'railway_minor':          { 'line-color': '#324158' },
-                'railway_transit':        { 'line-color': '#324158' },
+                'railway':                { 'line-color': '#3a4a63', 'line-opacity': 0.7 },
+                'railway_minor':          { 'line-color': '#324158', 'line-opacity': 0.7 },
+                'railway_transit':        { 'line-color': '#324158', 'line-opacity': 0.7 },
 
                 // --- Etiquetas: más legibles sobre el fondo oscuro ---
                 'highway_name_other':    { 'text-color': '#b9c6da' },
@@ -388,41 +432,89 @@
                     try { map.setPaintProperty(idCapa, propiedad, valor); } catch (e) { /* la capa no tiene esa propiedad, se ignora */ }
                 }
             }
+
+            // --- JERARQUÍA VIAL: ancho (curvas propias por nivel, ya no comparten curva) ---
+            const anchos = {
+                'highway_motorway_inner':  ['interpolate', ['exponential', 1.4], ['zoom'], 5, 1.5, 10, 3, 14, 6.5, 18, 14],
+                'highway_motorway_casing': ['interpolate', ['exponential', 1.4], ['zoom'], 5, 3, 10, 5.5, 14, 10, 18, 19],
+                'highway_major_inner':     ['interpolate', ['exponential', 1.3], ['zoom'], 10, 1, 13, 2.5, 16, 5, 20, 9],
+                'highway_major_casing':    ['interpolate', ['exponential', 1.3], ['zoom'], 10, 2.2, 13, 4.2, 16, 7.5, 20, 13],
+                'highway_minor':           ['interpolate', ['exponential', 1.4], ['zoom'], 13, 0.4, 16, 1.2, 18, 2.2, 20, 3.5],
+                'highway_path':            ['interpolate', ['exponential', 1.2], ['zoom'], 13, 0.5, 18, 2]
+            };
+            for (const [idCapa, expresion] of Object.entries(anchos)) {
+                if (!map.getLayer(idCapa)) continue;
+                try { map.setPaintProperty(idCapa, 'line-width', expresion); } catch (e) { /* ignorar */ }
+            }
+
+            // --- GLORIETAS: el estilo original usa "line-join: miter" en las capas de
+            // "casing" (contorno) de avenidas y autopistas. En curvas cerradas (como
+            // una glorieta), un miter join genera una punta/mancha que se ve enorme.
+            // Cambiarlo a "round" resuelve el problema sin tocar los datos. ---
+            ['highway_major_casing', 'highway_motorway_casing'].forEach(idCapa => {
+                if (!map.getLayer(idCapa)) return;
+                try { map.setLayoutProperty(idCapa, 'line-join', 'round'); } catch (e) { /* ignorar */ }
+            });
         }
 
-        // Agrega una capa de relieve (hillshade) usando un DEM público (AWS Terrarium,
-        // sin API key) para darle textura y profundidad a los cerros/montañas, tal
-        // como se ve en el mapa de referencia. Solo se usa en el tema Noche.
-        function agregarRelieve() {
+        // Brillo/resplandor sutil a lo largo de la costa: el estilo original solo
+        // rellena el agua (fill), sin ningún trazo en el borde, por eso la línea
+        // costa/tierra se sentía muy dura. Se agrega un trazo fino y difuminado
+        // (line-blur) justo en el contorno del polígono de agua.
+        function agregarBrilloCosta() {
             try {
-                if (map.getSource('terreno-dem')) return; // ya existe, no duplicar
-                map.addSource('terreno-dem', {
-                    type: 'raster-dem',
-                    tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    encoding: 'terrarium',
-                    maxzoom: 14
-                });
-                // Se inserta justo encima del agua, así los rellenos de bosque/parque
-                // (semitransparentes) y las vías quedan por encima del relieve.
+                if (map.getLayer('costa-brillo')) return;
                 map.addLayer({
-                    id: 'relieve-hillshade',
-                    type: 'hillshade',
-                    source: 'terreno-dem',
+                    id: 'costa-brillo',
+                    type: 'line',
+                    source: 'openmaptiles',
+                    'source-layer': 'water',
+                    filter: ['all', ['match', ['geometry-type'], ['MultiPolygon', 'Polygon'], true, false], ['!=', ['get', 'brunnel'], 'tunnel']],
                     paint: {
-                        'hillshade-shadow-color': '#04070c',
-                        'hillshade-highlight-color': '#1b2b22',
-                        'hillshade-accent-color': '#16281c',
-                        'hillshade-exaggeration': 0.5
+                        'line-color': '#2f6690',
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.6, 14, 2.5],
+                        'line-blur': 1.2,
+                        'line-opacity': 0.75
                     }
-                }, 'landcover_ice_shelf');
+                });
             } catch (e) {
-                console.warn('No se pudo agregar la capa de relieve:', e);
+                console.warn('No se pudo agregar el brillo de costa:', e);
+            }
+        }
+
+        // Cielo/atmósfera + luz direccional real: esto es lo que le da volumen de
+        // verdad a los edificios extruidos (sombreado en sus caras según de dónde
+        // "viene" la luz), en vez de que se vean como un plano inclinado con cajas
+        // planas encima.
+        function agregarProfundidad() {
+            map.setLight({
+                anchor: 'viewport',
+                color: '#ffffff',
+                intensity: temaActual === 'night' ? 0.4 : 0.55,
+                position: [1.5, 90, 55]
+            });
+            try {
+                if (map.getLayer('cielo')) return;
+                map.addLayer({
+                    id: 'cielo',
+                    type: 'sky',
+                    paint: {
+                        'sky-type': 'atmosphere',
+                        'sky-atmosphere-sun': [0, 90],
+                        'sky-atmosphere-sun-intensity': temaActual === 'night' ? 3 : 10,
+                        'sky-atmosphere-color': temaActual === 'night' ? '#0a1420' : '#bfe3ff',
+                        'sky-atmosphere-halo-color': temaActual === 'night' ? '#0a1420' : '#ffffff'
+                    }
+                });
+            } catch (e) {
+                console.warn('No se pudo agregar la capa de cielo:', e);
             }
         }
 
         // Agrega la capa de edificios 3D (se debe volver a llamar cada vez que
-        // cambia el estilo del mapa, ya que setStyle() borra todas las capas propias)
+        // cambia el estilo del mapa, ya que setStyle() borra todas las capas propias).
+        // 'fill-extrusion-vertical-gradient' + la luz de agregarProfundidad() dan
+        // sombreado real cara por cara, en vez de un color plano sin volumen.
         function agregarEdificios3D() {
             try {
                 if (map.getLayer('edificios-3d')) return; // ya existe, no duplicar
@@ -431,7 +523,9 @@
                 for (const capa of capas) {
                     if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
                 }
-                const colorEdificio = temaActual === 'night' ? '#324158' : '#b8b8b8';
+                // Tono más claro y con más contraste contra el fondo oscuro (antes
+                // "#324158" se perdía casi contra el terreno "#0a1420"; ahora resalta).
+                const colorEdificio = temaActual === 'night' ? '#54688a' : '#b8b8b8';
                 map.addLayer({
                     id: 'edificios-3d',
                     source: 'openmaptiles',
@@ -442,7 +536,8 @@
                         'fill-extrusion-color': colorEdificio,
                         'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
                         'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                        'fill-extrusion-opacity': temaActual === 'night' ? 0.55 : 0.75
+                        'fill-extrusion-opacity': temaActual === 'night' ? 0.9 : 0.85,
+                        'fill-extrusion-vertical-gradient': true
                     }
                 }, idCapaEtiquetas);
             } catch (e) {
@@ -472,8 +567,9 @@
         map.on('style.load', () => {
             if (temaActual === 'night') {
                 personalizarTemaNoche();
-                agregarRelieve();
+                agregarBrilloCosta();
             }
+            agregarProfundidad();
             agregarEdificios3D();
             reaplicarRutasActivas();
         });
@@ -548,7 +644,7 @@
                 const distritoId = idSeguro(distrito);
 
                 html += `
-                    <div class="distrito-bloque">
+                    <div class="distrito-bloque" id="bloque-${distritoId}">
                         <button type="button" class="distrito-header" id="header-${distritoId}" onclick="toggleDistrito('${distritoId}')">
                             <span>${distrito} (${ids.length})</span>
                             <span class="chevron">▼</span>
@@ -558,7 +654,7 @@
 
                 for (const [id, datos] of Object.entries(rutas)) {
                     html += `
-                        <div class="route-item" id="item-${id}" onclick="abrirTarjetaEmpresa('${id}')">
+                        <div class="route-item" id="item-${id}" data-distrito="${distritoId}" onclick="abrirTarjetaEmpresa('${id}')">
                             <span class="color-box" style="background: ${datos.color};"></span> ${datos.nombre}
                         </div>
                     `;
@@ -584,6 +680,21 @@
                 content.classList.add('abierto');
                 header.classList.add('abierto');
                 content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        }
+
+        // Resalta en el acordeón el/los departamento(s) que tienen alguna ruta
+        // activa en este momento (antes todos los bloques se veían idénticos,
+        // sin ninguna jerarquía visual).
+        function actualizarEstadoDistritos() {
+            document.querySelectorAll('.distrito-bloque').forEach(b => b.classList.remove('tiene-activa'));
+            for (const distrito in distritosData) {
+                const distritoId = idSeguro(distrito);
+                const tieneActiva = Object.values(distritosData[distrito]).some(d => d._direccionActiva);
+                if (tieneActiva) {
+                    const bloque = document.getElementById(`bloque-${distritoId}`);
+                    if (bloque) bloque.classList.add('tiene-activa');
+                }
             }
         }
 
@@ -736,6 +847,7 @@
                 btnDireccionIda.classList.remove('activo');
                 btnDireccionVuelta.classList.remove('activo');
                 if (itemMenu) itemMenu.classList.remove('activa');
+                actualizarEstadoDistritos();
                 return;
             }
 
@@ -749,6 +861,7 @@
             btnDireccionIda.classList.toggle('activo', sufijo === 'ida');
             btnDireccionVuelta.classList.toggle('activo', sufijo === 'vuelta');
             if (itemMenu) itemMenu.classList.add('activa');
+            actualizarEstadoDistritos();
 
             // Rumbo real de la ruta (de su primer punto a su último)
             const inicio = waypoints[0];
