@@ -81,6 +81,18 @@
         .color-box { width: 15px; height: 15px; display: inline-block; margin-right: 10px; border: 1px solid #333; border-radius: 3px;}
         .legend { font-size: 11px; color: #555; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 5px;}
 
+        /* ---------- Selector de tema Día / Noche (fijo al final del menú) ---------- */
+        .theme-toggle { margin-top: 18px; padding-top: 12px; border-top: 1px solid #ccc; }
+        .theme-toggle-label { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .theme-toggle-buttons { display: flex; gap: 8px; }
+        .theme-btn {
+            flex: 1; padding: 10px 6px; border-radius: 8px; border: 2px solid #ddd;
+            background: #f5f5f5; color: #333; font-size: 13px; font-weight: bold;
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .theme-btn:active { background: #e8e8e8; }
+        .theme-btn.activo { background: #2c2c2c; border-color: #2c2c2c; color: #fff; }
+
         /* Zona invisible en el borde derecho de la pantalla para iniciar el gesto de "jalar" y abrir el menú */
         .edge-swipe-zone {
             position: fixed; top: 0; right: 0; width: 24px; height: 100%;
@@ -103,8 +115,16 @@
         <div id="lista-rutas"></div>
 
         <div class="legend">
-            <b>Línea continua</b> = Ida<br>
-            <b>Línea punteada</b> = Vuelta
+            <span style="color:#2979FF;">●</span> <b>Azul, línea continua</b> = Ida<br>
+            <span style="color:#FF3B30;">●</span> <b>Rojo, línea punteada</b> = Vuelta
+        </div>
+
+        <div class="theme-toggle">
+            <div class="theme-toggle-label">🎨 Estilo del mapa</div>
+            <div class="theme-toggle-buttons">
+                <button type="button" id="btnTemaDia" class="theme-btn" onclick="cambiarTema('day')">☀️ Día</button>
+                <button type="button" id="btnTemaNoche" class="theme-btn activo" onclick="cambiarTema('night')">🌙 Noche</button>
+            </div>
         </div>
     </div>
 
@@ -149,13 +169,27 @@
         // ------------------------------------------------------------------
         Object.defineProperty(window, 'devicePixelRatio', { get: () => 1 });
 
+        // ------------------------------------------------------------------
+        // TEMAS DEL MAPA: Día (claro) y Noche (oscuro, estilo "Dark Matter").
+        // Ambos son estilos gratuitos de OpenFreeMap, sin API key.
+        // ------------------------------------------------------------------
+        const ESTILOS_MAPA = {
+            day: 'https://tiles.openfreemap.org/styles/liberty',
+            night: 'https://tiles.openfreemap.org/styles/dark'
+        };
+        // Colores de las rutas según sentido (independiente del color propio de cada línea/corredor)
+        const COLOR_IDA = '#2979FF';    // Azul
+        const COLOR_VUELTA = '#FF3B30'; // Rojo
+
+        let temaActual = 'night'; // Arranca en modo noche (estilo oscuro solicitado)
+
         // Mapa base en MapLibre GL (WebGL, 3D real: pitch + edificios extruidos).
         // Ya NO usamos Leaflet: todo (terreno, edificios y rutas) vive en la
         // misma escena, así que al inclinar o rotar la cámara, las rutas se
         // mueven exactamente junto con el mapa. Estilo libre, sin API key.
         const map = new maplibregl.Map({
             container: 'map',
-            style: 'https://tiles.openfreemap.org/styles/liberty',
+            style: ESTILOS_MAPA[temaActual],
             center: [-77.080, -12.050], // MapLibre usa [lng, lat]
             zoom: 12,
             pitch: 45,
@@ -168,14 +202,17 @@
 
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
 
-        // Edificios 3D: se agregan cuando el estilo termina de cargar
-        map.on('load', () => {
+        // Agrega la capa de edificios 3D (se debe volver a llamar cada vez que
+        // cambia el estilo del mapa, ya que setStyle() borra todas las capas propias)
+        function agregarEdificios3D() {
             try {
+                if (map.getLayer('edificios-3d')) return; // ya existe, no duplicar
                 const capas = map.getStyle().layers;
                 let idCapaEtiquetas;
                 for (const capa of capas) {
                     if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
                 }
+                const colorEdificio = temaActual === 'night' ? '#4a5568' : '#b8b8b8';
                 map.addLayer({
                     id: 'edificios-3d',
                     source: 'openmaptiles',
@@ -183,16 +220,55 @@
                     type: 'fill-extrusion',
                     minzoom: 15, // un poco más restrictivo: menos geometría 3D activa a la vez
                     paint: {
-                        'fill-extrusion-color': '#b8b8b8',
+                        'fill-extrusion-color': colorEdificio,
                         'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
                         'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                        'fill-extrusion-opacity': 0.75
+                        'fill-extrusion-opacity': temaActual === 'night' ? 0.55 : 0.75
                     }
                 }, idCapaEtiquetas);
             } catch (e) {
                 console.warn('No se pudo agregar la capa de edificios 3D:', e);
             }
+        }
+
+        // Vuelve a dibujar las rutas que ya estaban activas (usando su caché de
+        // coordenadas) después de un cambio de tema, ya que setStyle() destruye
+        // todas las fuentes y capas del estilo anterior.
+        function reaplicarRutasActivas() {
+            for (const distrito in distritosData) {
+                for (const idRuta in distritosData[distrito]) {
+                    const datos = distritosData[distrito][idRuta];
+                    const checkbox = document.getElementById(idRuta);
+                    if (checkbox && checkbox.checked) {
+                        datos.instancias = [];
+                        if (datos._cacheIda) {
+                            dibujarCapaLinea(`ruta-${idRuta}-ida`, datos._cacheIda, 'ida', null);
+                            datos.instancias.push(`ruta-${idRuta}-ida`);
+                        }
+                        if (datos._cacheVuelta) {
+                            dibujarCapaLinea(`ruta-${idRuta}-vuelta`, datos._cacheVuelta, 'vuelta', [2, 3]);
+                            datos.instancias.push(`ruta-${idRuta}-vuelta`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 'style.load' se dispara con la carga inicial Y cada vez que se llama a
+        // map.setStyle(), a diferencia de 'load' que solo ocurre una vez.
+        map.on('style.load', () => {
+            agregarEdificios3D();
+            reaplicarRutasActivas();
         });
+
+        // Cambia entre el tema Día y Noche
+        function cambiarTema(tema) {
+            if (tema === temaActual) return;
+            temaActual = tema;
+            document.getElementById('btnTemaDia').classList.toggle('activo', tema === 'day');
+            document.getElementById('btnTemaNoche').classList.toggle('activo', tema === 'night');
+            map.setStyle(ESTILOS_MAPA[tema]);
+        }
 
         // ------------------------------------------------------------------
         // Registro central de departamentos/distritos. Para agregar uno nuevo:
@@ -302,24 +378,11 @@
         // El trazado callejero se pide directo al servidor público de OSRM (fetch).
         // Si falla (sin red, sin cobertura vial, CORS, etc.) se cae automáticamente
         // a una línea recta entre los waypoints para que SIEMPRE se vea algo.
-        async function crearTramoGL(datos, idRuta, sufijo, waypointsRaw, dashArray) {
-            const idCapa = `ruta-${idRuta}-${sufijo}`;
-            let coords;
-
-            try {
-                const coordStr = waypointsRaw.map(p => `${p[1]},${p[0]}`).join(';');
-                const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                if (data.code === 'Ok' && data.routes && data.routes[0]) {
-                    coords = data.routes[0].geometry.coordinates;
-                } else {
-                    throw new Error('OSRM no encontró ruta');
-                }
-            } catch (e) {
-                coords = waypointsRaw.map(p => [p[1], p[0]]); // fallback: línea recta [lng, lat]
-            }
-
+        // Dibuja (o re-dibuja) una capa de línea ya con coordenadas resueltas.
+        // Separado de crearTramoGL para poder reutilizar la caché de coordenadas
+        // cuando cambia el tema del mapa (día/noche), sin tener que volver a
+        // pedir la ruta al servidor OSRM.
+        function dibujarCapaLinea(idCapa, coords, sufijo, dashArray) {
             // Por si ya existía (evita error "layer already exists")
             if (map.getLayer(idCapa)) map.removeLayer(idCapa);
             if (map.getSource(idCapa)) map.removeSource(idCapa);
@@ -329,19 +392,47 @@
                 data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} }
             });
 
+            // Ida siempre en azul, vuelta siempre en rojo (independiente del
+            // color propio asignado a cada corredor/línea en el menú lateral)
+            const colorLinea = sufijo === 'ida' ? COLOR_IDA : COLOR_VUELTA;
+
             map.addLayer({
                 id: idCapa,
                 type: 'line',
                 source: idCapa,
                 layout: { 'line-join': 'round', 'line-cap': 'round' },
                 paint: {
-                    'line-color': datos.color,
+                    'line-color': colorLinea,
                     'line-width': 6,
                     'line-opacity': 0.9,
                     ...(dashArray ? { 'line-dasharray': dashArray } : {})
                 }
             });
+        }
 
+        async function crearTramoGL(datos, idRuta, sufijo, waypointsRaw, dashArray) {
+            const idCapa = `ruta-${idRuta}-${sufijo}`;
+            const cacheKey = sufijo === 'ida' ? '_cacheIda' : '_cacheVuelta';
+            let coords = datos[cacheKey];
+
+            if (!coords) {
+                try {
+                    const coordStr = waypointsRaw.map(p => `${p[1]},${p[0]}`).join(';');
+                    const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                        coords = data.routes[0].geometry.coordinates;
+                    } else {
+                        throw new Error('OSRM no encontró ruta');
+                    }
+                } catch (e) {
+                    coords = waypointsRaw.map(p => [p[1], p[0]]); // fallback: línea recta [lng, lat]
+                }
+                datos[cacheKey] = coords; // cachea para reusar tras un cambio de tema
+            }
+
+            dibujarCapaLinea(idCapa, coords, sufijo, dashArray);
             datos.instancias.push(idCapa);
         }
 
