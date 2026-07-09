@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Estructural de Transporte - Lima y Callao</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
 
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; }
         #map { height: 100vh; width: 100%; }
-        .leaflet-routing-container { display: none !important; }
 
         /* ---------- Botón hamburguesa ---------- */
         .hamburger-btn {
@@ -111,8 +109,7 @@
 
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
     <!-- Datos de rutas por distrito (cada distrito en su propio archivo) -->
     <script src="rutas-callao.js"></script>
@@ -142,10 +139,46 @@
     <script src="rutas-tumbes.js"></script>
 
     <script>
-        const map = L.map('map').setView([-12.050, -77.080], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '© OpenStreetMap'
-        }).addTo(map);
+        // ------------------------------------------------------------------
+        // Mapa base en MapLibre GL (WebGL, 3D real: pitch + edificios extruidos).
+        // Ya NO usamos Leaflet: todo (terreno, edificios y rutas) vive en la
+        // misma escena, así que al inclinar o rotar la cámara, las rutas se
+        // mueven exactamente junto con el mapa. Estilo libre, sin API key.
+        // ------------------------------------------------------------------
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://tiles.openfreemap.org/styles/liberty',
+            center: [-77.080, -12.050], // MapLibre usa [lng, lat]
+            zoom: 12,
+            pitch: 50,
+            bearing: -12,
+            maxPitch: 75,
+            antialias: true
+        });
+
+        map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+
+        // Edificios 3D: se agregan cuando el estilo termina de cargar
+        map.on('load', () => {
+            const capas = map.getStyle().layers;
+            let idCapaEtiquetas;
+            for (const capa of capas) {
+                if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
+            }
+            map.addLayer({
+                id: 'edificios-3d',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                type: 'fill-extrusion',
+                minzoom: 14,
+                paint: {
+                    'fill-extrusion-color': '#b8b8b8',
+                    'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
+                    'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+                    'fill-extrusion-opacity': 0.75
+                }
+            }, idCapaEtiquetas);
+        });
 
         // ------------------------------------------------------------------
         // Registro central de departamentos/distritos. Para agregar uno nuevo:
@@ -248,46 +281,66 @@
             }
         }
 
-        // Dibuja un tramo (ida o vuelta) usando el motor de rutas callejeras (OSRM).
-        // Si OSRM no logra calcular la ruta (falla de red, sin cobertura vial, etc.),
-        // se cae automáticamente a una línea recta entre los puntos para que SIEMPRE se vea algo.
-        function crearTramo(datos, waypointsRaw, dashArray) {
-            const waypoints = waypointsRaw.map(p => L.latLng(p[0], p[1]));
-            const configBase = { routeWhileDragging: false, addWaypoints: false, fitSelectedRoutes: false, createMarker: () => null };
+        // Dibuja un tramo (ida o vuelta) como CAPA NATIVA de MapLibre (GeoJSON + line layer).
+        // Al vivir dentro de la misma escena WebGL que el mapa y los edificios 3D,
+        // la ruta se inclina/rota/escala en perfecta sincronía con la cámara.
+        //
+        // El trazado callejero se pide directo al servidor público de OSRM (fetch).
+        // Si falla (sin red, sin cobertura vial, CORS, etc.) se cae automáticamente
+        // a una línea recta entre los waypoints para que SIEMPRE se vea algo.
+        async function crearTramoGL(datos, idRuta, sufijo, waypointsRaw, dashArray) {
+            const idCapa = `ruta-${idRuta}-${sufijo}`;
+            let coords;
 
-            const control = L.Routing.control({
-                waypoints, ...configBase,
-                lineOptions: { styles: [{ color: datos.color, opacity: 0.9, weight: 6, dashArray }] }
+            try {
+                const coordStr = waypointsRaw.map(p => `${p[1]},${p[0]}`).join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                    coords = data.routes[0].geometry.coordinates;
+                } else {
+                    throw new Error('OSRM no encontró ruta');
+                }
+            } catch (e) {
+                coords = waypointsRaw.map(p => [p[1], p[0]]); // fallback: línea recta [lng, lat]
+            }
+
+            // Por si ya existía (evita error "layer already exists")
+            if (map.getLayer(idCapa)) map.removeLayer(idCapa);
+            if (map.getSource(idCapa)) map.removeSource(idCapa);
+
+            map.addSource(idCapa, {
+                type: 'geojson',
+                data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} }
             });
 
-            let resuelto = false;
-            control.on('routesfound', () => { resuelto = true; });
-            control.on('routingerror', () => {
-                if (resuelto) return; // ya se dibujó bien, ignorar
-                map.removeControl(control);
-                const idx = datos.instancias.indexOf(control);
-                if (idx !== -1) datos.instancias.splice(idx, 1);
-                const linea = L.polyline(waypoints, { color: datos.color, opacity: 0.9, weight: 6, dashArray }).addTo(map);
-                datos.instancias.push(linea);
+            map.addLayer({
+                id: idCapa,
+                type: 'line',
+                source: idCapa,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': datos.color,
+                    'line-width': 6,
+                    'line-opacity': 0.9,
+                    ...(dashArray ? { 'line-dasharray': dashArray } : {})
+                }
             });
 
-            control.addTo(map);
-            datos.instancias.push(control);
+            datos.instancias.push(idCapa);
         }
 
         function limpiarInstancias(datos) {
-            datos.instancias.forEach(instancia => {
-                if (instancia instanceof L.Polyline) {
-                    map.removeLayer(instancia);
-                } else {
-                    map.removeControl(instancia);
-                }
+            datos.instancias.forEach(idCapa => {
+                if (map.getLayer(idCapa)) map.removeLayer(idCapa);
+                if (map.getSource(idCapa)) map.removeSource(idCapa);
             });
             datos.instancias = [];
         }
 
         // Lógica del motor de enrutamiento
-        function toggleRuta(idRuta) {
+        async function toggleRuta(idRuta) {
             const checkbox = document.getElementById(idRuta);
             const datos = buscarRuta(idRuta);
             if (!datos) return;
@@ -296,13 +349,17 @@
             if (!datos.instancias) datos.instancias = [];
 
             if (checkbox.checked) {
-                crearTramo(datos, datos.ida, null);
-                crearTramo(datos, datos.vuelta, '8, 12');
+                await crearTramoGL(datos, idRuta, 'ida', datos.ida, null);
+                await crearTramoGL(datos, idRuta, 'vuelta', datos.vuelta, [2, 3]);
 
                 // Centra/ajusta el mapa automáticamente sobre la ruta activada,
                 // ya que puede estar en un departamento distinto al que se ve por defecto (Lima/Callao)
-                const puntos = [...datos.ida, ...datos.vuelta].map(p => L.latLng(p[0], p[1]));
-                map.flyToBounds(L.latLngBounds(puntos), { padding: [60, 60], maxZoom: 14, duration: 1.2 });
+                const puntos = [...datos.ida, ...datos.vuelta];
+                const bounds = puntos.reduce(
+                    (b, p) => b.extend([p[1], p[0]]),
+                    new maplibregl.LngLatBounds([puntos[0][1], puntos[0][0]], [puntos[0][1], puntos[0][0]])
+                );
+                map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 1200 });
             } else {
                 limpiarInstancias(datos);
             }
