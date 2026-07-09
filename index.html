@@ -203,11 +203,15 @@
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
 
         // Repinta el tema Noche con colores reales (agua azul oscuro, parques/bosque
-        // verde oscuro, edificios azulados) en vez del gris/negro plano del estilo
-        // "dark" original de OpenFreeMap. Se aplica con setPaintProperty porque es
-        // más liviano que clonar y reemplazar todo el JSON del estilo.
+        // verde oscuro, vías claras y bien visibles, edificios azulados) en vez del
+        // gris/negro plano del estilo "dark" original de OpenFreeMap. También corrige
+        // las pistas del aeropuerto, que en el estilo original se ven como rectángulos
+        // negros sólidos y desentonan con el fondo azul oscuro.
+        // Se aplica con setPaintProperty porque es más liviano que clonar y
+        // reemplazar todo el JSON del estilo.
         function personalizarTemaNoche() {
             const paints = {
+                // --- Terreno, agua y vegetación ---
                 'background':          { 'background-color': '#0a1420' },      // azul muy oscuro (no negro puro)
                 'water':                { 'fill-color': '#0d2b46' },            // agua azul oscuro
                 'waterway':             { 'line-color': '#0d2b46' },
@@ -216,13 +220,77 @@
                 'landuse_residential':  { 'fill-color': '#141a22' },            // zonas urbanas, azulado muy sutil
                 'building':             { 'fill-color': '#151b25', 'fill-outline-color': '#22303f' },
                 'landcover_ice_shelf':  { 'fill-color': '#0a1420' },
-                'landcover_glacier':    { 'fill-color': '#0a1420' }
+                'landcover_glacier':    { 'fill-color': '#0a1420' },
+
+                // --- Pistas y calles de rodaje del aeropuerto: en el estilo original
+                // se pintan negro sólido y se ven como manchas oscuras encima del
+                // fondo azulado; las hacemos transparentes/sutiles ---
+                'aeroway-area':         { 'fill-opacity': 0 },
+                'aeroway-runway':       { 'line-color': '#2a3446', 'line-opacity': 0.6 },
+                'aeroway-taxiway':      { 'line-color': '#22303f' },
+                'aeroway-runway-casing':{ 'line-color': 'rgba(90,110,135,0.6)' },
+
+                // --- Vías: más claras y visibles (como una calcomanía sobre el mapa) ---
+                'highway_minor':          { 'line-color': '#3a4a63' },
+                'highway_major_casing':   { 'line-color': 'rgba(110,130,155,0.55)' },
+                'highway_major_inner':    { 'line-color': '#9fb2cc' },
+                'highway_major_subtle':   { 'line-color': '#4a5b76' },
+                'highway_motorway_casing':{ 'line-color': 'rgba(110,130,155,0.6)' },
+                'highway_motorway_inner': { 'line-color': '#c7d5e8' },
+                'highway_motorway_subtle':{ 'line-color': '#3a4a63' },
+                'highway_path':           { 'line-color': '#22303f' },
+                'railway':                { 'line-color': '#3a4a63' },
+                'railway_minor':          { 'line-color': '#324158' },
+                'railway_transit':        { 'line-color': '#324158' },
+
+                // --- Etiquetas: más legibles sobre el fondo oscuro ---
+                'highway_name_other':    { 'text-color': '#b9c6da' },
+                'highway_name_motorway': { 'text-color': '#d7e1f0' },
+                'place_other':    { 'text-color': '#c3cee0' },
+                'place_suburb':   { 'text-color': '#c3cee0' },
+                'place_village':  { 'text-color': '#c3cee0' },
+                'place_town':     { 'text-color': '#d3dcea' },
+                'place_city':     { 'text-color': '#e2e8f2' },
+                'place_city_large': { 'text-color': '#e2e8f2' },
+                'place_state':    { 'text-color': '#c3cee0' },
+                'water_name':     { 'text-color': '#4f7fa6' }
             };
             for (const [idCapa, propiedades] of Object.entries(paints)) {
                 if (!map.getLayer(idCapa)) continue;
                 for (const [propiedad, valor] of Object.entries(propiedades)) {
                     try { map.setPaintProperty(idCapa, propiedad, valor); } catch (e) { /* la capa no tiene esa propiedad, se ignora */ }
                 }
+            }
+        }
+
+        // Agrega una capa de relieve (hillshade) usando un DEM público (AWS Terrarium,
+        // sin API key) para darle textura y profundidad a los cerros/montañas, tal
+        // como se ve en el mapa de referencia. Solo se usa en el tema Noche.
+        function agregarRelieve() {
+            try {
+                if (map.getSource('terreno-dem')) return; // ya existe, no duplicar
+                map.addSource('terreno-dem', {
+                    type: 'raster-dem',
+                    tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+                    tileSize: 256,
+                    encoding: 'terrarium',
+                    maxzoom: 14
+                });
+                // Se inserta justo encima del agua, así los rellenos de bosque/parque
+                // (semitransparentes) y las vías quedan por encima del relieve.
+                map.addLayer({
+                    id: 'relieve-hillshade',
+                    type: 'hillshade',
+                    source: 'terreno-dem',
+                    paint: {
+                        'hillshade-shadow-color': '#04070c',
+                        'hillshade-highlight-color': '#1b2b22',
+                        'hillshade-accent-color': '#16281c',
+                        'hillshade-exaggeration': 0.5
+                    }
+                }, 'landcover_ice_shelf');
+            } catch (e) {
+                console.warn('No se pudo agregar la capa de relieve:', e);
             }
         }
 
@@ -281,7 +349,10 @@
         // 'style.load' se dispara con la carga inicial Y cada vez que se llama a
         // map.setStyle(), a diferencia de 'load' que solo ocurre una vez.
         map.on('style.load', () => {
-            if (temaActual === 'night') personalizarTemaNoche();
+            if (temaActual === 'night') {
+                personalizarTemaNoche();
+                agregarRelieve();
+            }
             agregarEdificios3D();
             reaplicarRutasActivas();
         });
