@@ -139,6 +139,7 @@
     <script src="rutas-sanmartin.js"></script>
     <script src="rutas-amazonas.js"></script>
     <script src="rutas-cajamarca.js"></script>
+    <script src="rutas-tumbes.js"></script>
 
     <script>
         const map = L.map('map').setView([-12.050, -77.080], 12);
@@ -176,7 +177,8 @@
             "Áncash": (typeof rutasAncash !== 'undefined') ? rutasAncash : {},
             "San Martín": (typeof rutasSanMartin !== 'undefined') ? rutasSanMartin : {},
             "Amazonas": (typeof rutasAmazonas !== 'undefined') ? rutasAmazonas : {},
-            "Cajamarca": (typeof rutasCajamarca !== 'undefined') ? rutasCajamarca : {}
+            "Cajamarca": (typeof rutasCajamarca !== 'undefined') ? rutasCajamarca : {},
+            "Tumbes": (typeof rutasTumbes !== 'undefined') ? rutasTumbes : {}
         };
 
         // Busca una ruta por su id en cualquiera de los departamentos registrados
