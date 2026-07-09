@@ -202,6 +202,30 @@
 
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
 
+        // Repinta el tema Noche con colores reales (agua azul oscuro, parques/bosque
+        // verde oscuro, edificios azulados) en vez del gris/negro plano del estilo
+        // "dark" original de OpenFreeMap. Se aplica con setPaintProperty porque es
+        // más liviano que clonar y reemplazar todo el JSON del estilo.
+        function personalizarTemaNoche() {
+            const paints = {
+                'background':          { 'background-color': '#0a1420' },      // azul muy oscuro (no negro puro)
+                'water':                { 'fill-color': '#0d2b46' },            // agua azul oscuro
+                'waterway':             { 'line-color': '#0d2b46' },
+                'landcover_wood':       { 'fill-color': '#16281c' },            // bosque verde oscuro
+                'landuse_park':         { 'fill-color': '#183a24' },            // parques verde oscuro
+                'landuse_residential':  { 'fill-color': '#141a22' },            // zonas urbanas, azulado muy sutil
+                'building':             { 'fill-color': '#151b25', 'fill-outline-color': '#22303f' },
+                'landcover_ice_shelf':  { 'fill-color': '#0a1420' },
+                'landcover_glacier':    { 'fill-color': '#0a1420' }
+            };
+            for (const [idCapa, propiedades] of Object.entries(paints)) {
+                if (!map.getLayer(idCapa)) continue;
+                for (const [propiedad, valor] of Object.entries(propiedades)) {
+                    try { map.setPaintProperty(idCapa, propiedad, valor); } catch (e) { /* la capa no tiene esa propiedad, se ignora */ }
+                }
+            }
+        }
+
         // Agrega la capa de edificios 3D (se debe volver a llamar cada vez que
         // cambia el estilo del mapa, ya que setStyle() borra todas las capas propias)
         function agregarEdificios3D() {
@@ -212,7 +236,7 @@
                 for (const capa of capas) {
                     if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
                 }
-                const colorEdificio = temaActual === 'night' ? '#4a5568' : '#b8b8b8';
+                const colorEdificio = temaActual === 'night' ? '#324158' : '#b8b8b8';
                 map.addLayer({
                     id: 'edificios-3d',
                     source: 'openmaptiles',
@@ -257,6 +281,7 @@
         // 'style.load' se dispara con la carga inicial Y cada vez que se llama a
         // map.setStyle(), a diferencia de 'load' que solo ocurre una vez.
         map.on('style.load', () => {
+            if (temaActual === 'night') personalizarTemaNoche();
             agregarEdificios3D();
             reaplicarRutasActivas();
         });
