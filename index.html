@@ -14,12 +14,13 @@
 
         /* ---------- Botón hamburguesa ---------- */
         .hamburger-btn {
-            position: absolute; top: 15px; right: 15px; z-index: 1100;
+            position: fixed; top: 15px; right: 15px; z-index: 9999;
             width: 46px; height: 46px; border-radius: 8px; border: none;
             background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             cursor: pointer; display: flex; flex-direction: column; align-items: center;
             justify-content: center; gap: 5px; padding: 0;
             transition: background 0.2s;
+            pointer-events: auto;
         }
         .hamburger-btn:active { background: #eee; }
         .hamburger-btn span {
@@ -33,14 +34,14 @@
         /* ---------- Overlay (fondo oscuro al abrir el menú) ---------- */
         .overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.35);
-            z-index: 1050; opacity: 0; pointer-events: none;
+            z-index: 9990; opacity: 0; pointer-events: none;
             transition: opacity 0.25s;
         }
         .overlay.visible { opacity: 1; pointer-events: auto; }
 
         /* ---------- Panel lateral (drawer) ---------- */
         .control-panel {
-            position: fixed; top: 0; right: 0; height: 100%; z-index: 1080;
+            position: fixed; top: 0; right: 0; height: 100%; z-index: 9995;
             background: rgba(255, 255, 255, 0.97); padding: 70px 15px 15px 15px;
             box-shadow: -4px 0 20px rgba(0,0,0,0.3);
             width: 280px; max-width: 82vw; overflow-y: auto;
@@ -83,7 +84,7 @@
         /* Zona invisible en el borde derecho de la pantalla para iniciar el gesto de "jalar" y abrir el menú */
         .edge-swipe-zone {
             position: fixed; top: 0; right: 0; width: 24px; height: 100%;
-            z-index: 1090; touch-action: none;
+            z-index: 9980; touch-action: none;
         }
     </style>
 </head>
@@ -140,44 +141,57 @@
 
     <script>
         // ------------------------------------------------------------------
+        // OPTIMIZACIÓN DE RENDIMIENTO: limitamos la resolución de renderizado
+        // a 1x en vez de la densidad de píxeles real del dispositivo (2x o 3x
+        // en celulares). Esto reduce drásticamente la carga de la GPU (hasta
+        // 4-9 veces menos píxeles que sombrear por frame) con una pérdida de
+        // nitidez casi imperceptible. Debe ejecutarse ANTES de crear el mapa.
+        // ------------------------------------------------------------------
+        Object.defineProperty(window, 'devicePixelRatio', { get: () => 1 });
+
         // Mapa base en MapLibre GL (WebGL, 3D real: pitch + edificios extruidos).
         // Ya NO usamos Leaflet: todo (terreno, edificios y rutas) vive en la
         // misma escena, así que al inclinar o rotar la cámara, las rutas se
         // mueven exactamente junto con el mapa. Estilo libre, sin API key.
-        // ------------------------------------------------------------------
         const map = new maplibregl.Map({
             container: 'map',
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [-77.080, -12.050], // MapLibre usa [lng, lat]
             zoom: 12,
-            pitch: 50,
+            pitch: 45,
             bearing: -12,
-            maxPitch: 75,
-            antialias: true
+            maxPitch: 60,
+            antialias: false,       // el mayor ahorro de GPU; el detalle perdido no se nota
+            fadeDuration: 0,        // sin crossfade de teselas al hacer zoom (menos trabajo por frame)
+            renderWorldCopies: false
         });
 
         map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
 
         // Edificios 3D: se agregan cuando el estilo termina de cargar
         map.on('load', () => {
-            const capas = map.getStyle().layers;
-            let idCapaEtiquetas;
-            for (const capa of capas) {
-                if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
-            }
-            map.addLayer({
-                id: 'edificios-3d',
-                source: 'openmaptiles',
-                'source-layer': 'building',
-                type: 'fill-extrusion',
-                minzoom: 14,
-                paint: {
-                    'fill-extrusion-color': '#b8b8b8',
-                    'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
-                    'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                    'fill-extrusion-opacity': 0.75
+            try {
+                const capas = map.getStyle().layers;
+                let idCapaEtiquetas;
+                for (const capa of capas) {
+                    if (capa.type === 'symbol') { idCapaEtiquetas = capa.id; break; }
                 }
-            }, idCapaEtiquetas);
+                map.addLayer({
+                    id: 'edificios-3d',
+                    source: 'openmaptiles',
+                    'source-layer': 'building',
+                    type: 'fill-extrusion',
+                    minzoom: 15, // un poco más restrictivo: menos geometría 3D activa a la vez
+                    paint: {
+                        'fill-extrusion-color': '#b8b8b8',
+                        'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8],
+                        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+                        'fill-extrusion-opacity': 0.75
+                    }
+                }, idCapaEtiquetas);
+            } catch (e) {
+                console.warn('No se pudo agregar la capa de edificios 3D:', e);
+            }
         });
 
         // ------------------------------------------------------------------
@@ -349,8 +363,10 @@
             if (!datos.instancias) datos.instancias = [];
 
             if (checkbox.checked) {
-                await crearTramoGL(datos, idRuta, 'ida', datos.ida, null);
-                await crearTramoGL(datos, idRuta, 'vuelta', datos.vuelta, [2, 3]);
+                await Promise.all([
+                    crearTramoGL(datos, idRuta, 'ida', datos.ida, null),
+                    crearTramoGL(datos, idRuta, 'vuelta', datos.vuelta, [2, 3])
+                ]);
 
                 // Centra/ajusta el mapa automáticamente sobre la ruta activada,
                 // ya que puede estar en un departamento distinto al que se ve por defecto (Lima/Callao)
