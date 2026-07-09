@@ -699,6 +699,27 @@
 
         empresaCardCerrar.addEventListener('click', cerrarTarjetaEmpresa);
 
+        // ------------------------------------------------------------------
+        // CÁMARA DIAGONAL: en vez de solo centrar la ruta (fitBounds sin rotar),
+        // calculamos el rumbo (bearing) geográfico real de la ruta -de su
+        // primer punto a su último- y rotamos la cámara para que esa línea
+        // quede orientada en diagonal en la pantalla (no perfectamente
+        // vertical ni horizontal), aprovechando mejor el espacio en móviles
+        // (igual que se ve en la captura de referencia de Vura).
+        // ------------------------------------------------------------------
+        const DIAGONAL_OFFSET = 38; // grados de inclinación deseados respecto a la vertical de pantalla
+
+        // Rumbo geográfico (0-360°, 0 = norte) entre dos puntos [lat, lng]
+        function calcularBearing(lat1, lon1, lat2, lon2) {
+            const toRad = d => d * Math.PI / 180;
+            const toDeg = r => r * 180 / Math.PI;
+            const dLon = toRad(lon2 - lon1);
+            const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+            const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+                      Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+            return (toDeg(Math.atan2(y, x)) + 360) % 360;
+        }
+
         async function seleccionarDireccion(sufijo) {
             if (!idRutaTarjetaActual) return;
             const idRuta = idRutaTarjetaActual;
@@ -729,13 +750,28 @@
             btnDireccionVuelta.classList.toggle('activo', sufijo === 'vuelta');
             if (itemMenu) itemMenu.classList.add('activa');
 
+            // Rumbo real de la ruta (de su primer punto a su último)
+            const inicio = waypoints[0];
+            const fin = waypoints[waypoints.length - 1];
+            const rumboRuta = calcularBearing(inicio[0], inicio[1], fin[0], fin[1]);
+
+            // Rotamos la cámara para que esa línea quede en diagonal (no vertical)
+            const bearingCamara = (rumboRuta - DIAGONAL_OFFSET + 360) % 360;
+
             // Centra/ajusta el mapa automáticamente sobre la dirección elegida,
-            // ya que puede estar en un departamento distinto al que se ve por defecto (Lima/Callao)
+            // ya que puede estar en un departamento distinto al que se ve por
+            // defecto (Lima/Callao), y aplica la rotación diagonal calculada.
             const bounds = waypoints.reduce(
                 (b, p) => b.extend([p[1], p[0]]),
                 new maplibregl.LngLatBounds([waypoints[0][1], waypoints[0][0]], [waypoints[0][1], waypoints[0][0]])
             );
-            map.fitBounds(bounds, { padding: 70, maxZoom: 14, duration: 1200 });
+            map.fitBounds(bounds, {
+                padding: { top: 90, bottom: 220, left: 50, right: 50 },
+                maxZoom: 14,
+                duration: 1300,
+                bearing: bearingCamara,
+                pitch: 55
+            });
         }
 
         btnDireccionIda.addEventListener('click', () => seleccionarDireccion('ida'));
